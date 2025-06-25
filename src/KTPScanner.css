@@ -1,0 +1,11 @@
+.overlay-box {
+  position: absolute;
+  border: 3px dashed red;
+  width: 80%; /* atau sesuaikan */
+  aspect-ratio: 85.6 / 53.98;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  pointer-events: none;
+}
