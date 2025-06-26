@@ -1,0 +1,11 @@
+.chart {
+  margin-top: 2rem;
+  height: 200px;
+  background: linear-gradient(to top, #fdd, #fff);
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #df3422;
+  font-weight: 600;
+}
