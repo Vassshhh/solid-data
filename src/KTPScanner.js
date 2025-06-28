@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import Modal from "./Modal";
+import FormComponent from "./FormComponent";
 
 const STORAGE_KEY = "camera_canvas_gallery";
 
@@ -12,6 +13,9 @@ const CameraCanvas = () => {
   const [fileTemp, setFileTemp] = useState(null);
   const [isFreeze, setIsFreeze] = useState(false);
   const freezeFrameRef = useRef(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const rectRef = useRef({
     x: 0,
@@ -178,58 +182,38 @@ const CameraCanvas = () => {
   };
 
   const ReadImage = async (capturedImage) => {
-    const imageId = uuidv4();
-
     try {
+      setLoading(true);
+      setModalOpen(true);
+
       let res = await fetch(
         "https://bot.kediritechnopark.com/webhook/mastersnapper/read",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageId, image: capturedImage }),
+          body: JSON.stringify({ image: capturedImage }),
         }
       );
 
-      const { output } = await res.json();
+      setLoading(false);
 
-      // Bersihkan dan parsing JSON dari output
-      const jsonString = output
-        .replace(/^```json/, "")
-        .replace(/```$/, "")
-        .trim();
+      const data = await res.json();
+      console.log(data);
 
-      const data = JSON.parse(jsonString);
-
-      const newImage = {
-        imageId,
-        NIK: data.NIK || "",
-        Nama: data.Nama || "",
-        TTL: data.TTL || "",
-        Kelamin: data.Kelamin || "",
-        Alamat: data.Alamat || "",
-        RtRw: data["RT/RW"] || "",
-        KelDesa: data["Kel/Desa"] || "",
-        Kec: data.Kec || "",
-        Agama: data.Agama || "",
-        Hingga: data.Hingga || "",
-        Pembuatan: data.Pembuatan || "",
-        Kota: data["Kota Pembuatan"] || "",
-      };
-
-      setFileTemp(newImage);
+      setFileTemp(data);
     } catch (error) {
       console.error("Failed to read image:", error);
     }
   };
 
-  const handleSaveTemp = async () => {
+  const handleSaveTemp = async (correctedData) => {
     try {
       await fetch(
         "https://bot.kediritechnopark.com/webhook/mastersnapper/save",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fileTemp }),
+          body: JSON.stringify({ correctedData }),
         }
       );
 
@@ -397,13 +381,10 @@ const CameraCanvas = () => {
         muted
         style={{ display: "none" }}
       />
-      <canvas
-        ref={canvasRef}
-        style={{ border: "1px solid black", maxWidth: "100%", height: "auto" }}
-      />
+      <canvas ref={canvasRef} style={{ maxWidth: "100%", height: "auto" }} />
       <canvas ref={hiddenCanvasRef} style={{ display: "none" }} />
 
-      {!isFreeze ? (
+      {!isFreeze && !fileTemp ? (
         <div style={{ marginTop: 10 }}>
           <button onClick={shootImage}>Shoot</button>
           <div style={{ marginBottom: 10 }}>
@@ -415,7 +396,7 @@ const CameraCanvas = () => {
             />
           </div>
         </div>
-      ) : (
+      ) : !fileTemp ? (
         <div style={{ marginTop: 10 }}>
           <button onClick={() => setIsFreeze(false)}>Hapus</button>
           <button
@@ -423,52 +404,15 @@ const CameraCanvas = () => {
               ReadImage(capturedImage);
             }}
           >
-            Simpan
+            Upload
           </button>
         </div>
-      )}
-
-      {fileTemp && (
-        <div
-          style={{
-            marginTop: 20,
-            padding: 10,
-            border: "1px solid #ccc",
-            borderRadius: 8,
-          }}
-        >
-          <h4>Verifikasi Data</h4>
-          <table>
-            <tbody>
-              {Object.entries(fileTemp).map(([key, value]) => (
-                <tr key={key}>
-                  <td style={{ paddingRight: 10, fontWeight: "bold" }}>
-                    {key}
-                  </td>
-                  <td>{value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ marginTop: 10 }}>
-            <button
-              onClick={handleSaveTemp}
-              style={{
-                marginRight: 10,
-                backgroundColor: "green",
-                color: "white",
-              }}
-            >
-              Simpan ke Galeri
-            </button>
-            <button
-              onClick={handleDeleteTemp}
-              style={{ backgroundColor: "red", color: "white" }}
-            >
-              Hapus
-            </button>
-          </div>
-        </div>
+      ) : (
+        <FormComponent
+          fileTemp={fileTemp}
+          onSave={handleSaveTemp}
+          onDelete={handleDeleteTemp}
+        />
       )}
 
       <div style={{ marginTop: 20 }}>
@@ -536,6 +480,15 @@ const CameraCanvas = () => {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        loading={loading}
+        fileTemp={fileTemp}
+        onSave={handleSaveTemp}
+        onDelete={handleDeleteTemp}
+      />
     </div>
   );
 };
