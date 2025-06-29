@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import FormComponent from "./FormComponent";
+import pixelmatch from "pixelmatch";
 
 const STORAGE_KEY = "camera_canvas_gallery";
 
@@ -17,10 +18,46 @@ const CameraCanvas = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [KTPdetected, setKTPdetected] = useState(false);
+
   const fileInputRef = useRef(null);
 
   const triggerFileSelect = () => {
     fileInputRef.current?.click();
+  };
+  const loadImageToCanvas = (src, width, height) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas);
+      };
+    });
+  };
+
+  const isImageSimilar = (canvasA, canvasB) => {
+    const ctxA = canvasA.getContext("2d");
+    const ctxB = canvasB.getContext("2d");
+
+    const imgA = ctxA.getImageData(0, 0, canvasA.width, canvasA.height);
+    const imgB = ctxB.getImageData(0, 0, canvasB.width, canvasB.height);
+
+    const diffPixels = pixelmatch(
+      imgA.data,
+      imgB.data,
+      null,
+      canvasA.width,
+      canvasA.height,
+      { threshold: 0.6 }
+    );
+
+    const similarity = diffPixels / (canvasA.width * canvasA.height);
+    return similarity < 0.2; // you can adjust the threshold
   };
 
   const rectRef = useRef({
@@ -149,7 +186,7 @@ const CameraCanvas = () => {
     getCameraStream();
   }, [isFreeze]);
 
-  const shootImage = () => {
+  const shootImage = async () => {
     const video = videoRef.current;
     const { x, y, width, height } = rectRef.current;
     const hiddenCanvas = hiddenCanvasRef.current;
@@ -163,6 +200,7 @@ const CameraCanvas = () => {
       canvasRef.current.height
     );
     setIsFreeze(true);
+    setLoading(true);
 
     hiddenCtx.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
 
@@ -185,12 +223,24 @@ const CameraCanvas = () => {
 
     const imageDataUrl = cropCanvas.toDataURL("image/png", 1.0);
     setCapturedImage(imageDataUrl);
+
+    // 👉 Load sample KTP and compare
+    const sampleKtpCanvas = await loadImageToCanvas(
+      "/ktp.jpeg",
+      cropCanvas.width,
+      cropCanvas.height
+    );
+
+    const isSimilar = isImageSimilar(cropCanvas, sampleKtpCanvas);
+    setKTPdetected(isSimilar);
+
+    setLoading(false);
+    // Continue to OCR etc...
   };
 
   const ReadImage = async (capturedImage) => {
     try {
       setLoading(true);
-      setModalOpen(true);
 
       let res = await fetch(
         "https://bot.kediritechnopark.com/webhook/mastersnapper/read",
@@ -268,24 +318,13 @@ const CameraCanvas = () => {
       setCapturedImage(imageDataUrl);
       setIsFreeze(true);
 
-      // Create an image object from the uploaded file
       const image = new Image();
-      image.onload = () => {
-        // Get the width of the rounded rectangle from rectRef
+      image.onload = async () => {
         const rectWidth = rectRef.current.width;
         const rectHeight = rectRef.current.height;
-
-        // Create a canvas to draw the uploaded image
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
 
-        // Set the scale factor based on the rectangle width
-        const scaleFactor = rectWidth / image.width;
-
-        // Calculate the new height based on the aspect ratio
-        const newHeight = image.height * scaleFactor;
-
-        // Clear the canvas and draw the video or freeze frame
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (isFreeze && freezeFrameRef.current) {
           ctx.putImageData(freezeFrameRef.current, 0, 0);
@@ -294,7 +333,6 @@ const CameraCanvas = () => {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         }
 
-        // Draw the rounded rectangle
         drawRoundedRect(
           ctx,
           rectRef.current.x,
@@ -304,7 +342,6 @@ const CameraCanvas = () => {
           rectRef.current.radius
         );
 
-        // Draw the image inside the rounded rectangle
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(
@@ -352,26 +389,79 @@ const CameraCanvas = () => {
           rectRef.current.y
         );
         ctx.closePath();
-        ctx.clip(); // Clip the image within the rounded rectangle
+        ctx.clip();
 
-        // Draw the uploaded image inside the clipped region
+        // === Object-Fit: Cover Logic ===
+        const imageAspectRatio = image.width / image.height;
+        const rectAspectRatio = rectWidth / rectHeight;
+
+        let sx, sy, sWidth, sHeight;
+
+        if (imageAspectRatio > rectAspectRatio) {
+          // Image is wider than rect
+          sHeight = image.height;
+          sWidth = sHeight * rectAspectRatio;
+          sx = (image.width - sWidth) / 2;
+          sy = 0;
+        } else {
+          // Image is taller than rect
+          sWidth = image.width;
+          sHeight = sWidth / rectAspectRatio;
+          sx = 0;
+          sy = (image.height - sHeight) / 2;
+        }
+
         ctx.drawImage(
           image,
+          sx,
+          sy,
+          sWidth,
+          sHeight,
           rectRef.current.x,
           rectRef.current.y,
           rectWidth,
-          newHeight // Height is scaled based on the image's aspect ratio
+          rectHeight
         );
+        // ==============================
 
         ctx.restore();
 
-        // Save the image data into the freeze frame reference
         freezeFrameRef.current = ctx.getImageData(
           0,
           0,
           canvas.width,
           canvas.height
         );
+
+        const cropCanvas = document.createElement("canvas");
+        cropCanvas.width = rectWidth;
+        cropCanvas.height = rectHeight;
+        const cropCtx = cropCanvas.getContext("2d");
+
+        cropCtx.drawImage(
+          canvas,
+          rectRef.current.x,
+          rectRef.current.y,
+          rectWidth,
+          rectHeight,
+          0,
+          0,
+          rectWidth,
+          rectHeight
+        );
+
+        const ktpSample = new Image();
+        ktpSample.src = "/ktp.jpeg";
+        ktpSample.onload = () => {
+          const sampleCanvas = document.createElement("canvas");
+          sampleCanvas.width = rectWidth;
+          sampleCanvas.height = rectHeight;
+          const sampleCtx = sampleCanvas.getContext("2d");
+          sampleCtx.drawImage(ktpSample, 0, 0, rectWidth, rectHeight);
+
+          const isSimilar = isImageSimilar(cropCanvas, sampleCanvas);
+          setKTPdetected(isSimilar);
+        };
       };
       image.src = imageDataUrl;
     };
@@ -424,7 +514,6 @@ const CameraCanvas = () => {
           padding: "20px",
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Data Verification</h2>
         {!isFreeze ? (
           <>
             <div
@@ -439,7 +528,7 @@ const CameraCanvas = () => {
             >
               Ambil Gambar
             </div>
-            <div>atau</div>
+            <div style={{ fontWeight: "bold", margin: 10 }}>atau</div>
             <div
               style={{
                 padding: 10,
@@ -460,18 +549,37 @@ const CameraCanvas = () => {
               style={{ marginRight: 10, display: "none" }}
             />
           </>
+        ) : loading ? (
+          <div style={styles.spinnerContainer}>
+            <div style={styles.spinner} />
+            <style>{spinnerStyle}</style>
+          </div>
         ) : (
-          <div
-            style={{
-              padding: 10,
-              backgroundColor: "#ff6d6d",
-              borderRadius: 15,
-              color: "white",
-              fontWeight: "bold",
-            }}
-            onClick={() => ReadImage(capturedImage)}
-          >
-            Scan KTP
+          <div>
+            <h3 style={{ marginTop: 0 }}>
+              KTP {!KTPdetected && "Tidak"} Terdeteksi
+            </h3>
+            <div
+              style={{
+                padding: 10,
+                backgroundColor: "#ff6d6d",
+                borderRadius: 15,
+                color: "white",
+                fontWeight: "bold",
+              }}
+              onClick={() => ReadImage(capturedImage)}
+            >
+              {!KTPdetected && "Tetap"} Simpan
+            </div>
+
+            <h4
+              onClick={() => {
+                setFileTemp(null);
+                setIsFreeze(false);
+              }}
+            >
+              Hapus
+            </h4>
           </div>
         )}
       </div>
@@ -488,4 +596,26 @@ const CameraCanvas = () => {
   );
 };
 
+const spinnerStyle = `
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+`;
+
+const styles = {
+  spinnerContainer: {
+    textAlign: "center",
+    padding: 40,
+  },
+  spinner: {
+    border: "4px solid #f3f3f3",
+    borderTop: "4px solid #3498db",
+    borderRadius: "50%",
+    width: 40,
+    height: 40,
+    animation: "spin 1s linear infinite",
+    margin: "0 auto",
+  },
+};
 export default CameraCanvas;
