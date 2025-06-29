@@ -17,6 +17,12 @@ const CameraCanvas = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const fileInputRef = useRef(null);
+
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
   const rectRef = useRef({
     x: 0,
     y: 0,
@@ -374,6 +380,30 @@ const CameraCanvas = () => {
 
   return (
     <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "12px 16px",
+          backgroundColor: "#f5f5f5",
+          fontFamily: "sans-serif",
+          fontSize: "16px",
+          fontWeight: "bold",
+        }}
+      >
+        <button
+          style={{
+            marginRight: "12px",
+            fontSize: "18px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          &lt;
+        </button>
+        <div>Scan KTP atau unggah</div>
+      </div>
       <video
         ref={videoRef}
         autoPlay
@@ -384,101 +414,66 @@ const CameraCanvas = () => {
       <canvas ref={canvasRef} style={{ maxWidth: "100%", height: "auto" }} />
       <canvas ref={hiddenCanvasRef} style={{ display: "none" }} />
 
-      {!isFreeze && !fileTemp ? (
-        <div style={{ marginTop: 10 }}>
-          <button onClick={shootImage}>Shoot</button>
-          <div style={{ marginBottom: 10 }}>
+      <div
+        style={{
+          backgroundColor: "white",
+          borderRadius: 16,
+          textAlign: "center",
+          top: "-17px",
+          position: "relative",
+          padding: "20px",
+        }}
+      >
+        <h2 style={{ marginTop: 0 }}>Data Verification</h2>
+        {!isFreeze ? (
+          <>
+            <div
+              style={{
+                padding: 10,
+                backgroundColor: "#ff6d6d",
+                borderRadius: 15,
+                color: "white",
+                fontWeight: "bold",
+              }}
+              onClick={shootImage}
+            >
+              Ambil Gambar
+            </div>
+            <div>atau</div>
+            <div
+              style={{
+                padding: 10,
+                backgroundColor: "#ff6d6d",
+                borderRadius: 15,
+                color: "white",
+                fontWeight: "bold",
+              }}
+              onClick={triggerFileSelect}
+            >
+              Upload Gambar
+            </div>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={(e) => handleManualUpload(e)}
-              style={{ marginRight: 10 }}
+              style={{ marginRight: 10, display: "none" }}
             />
-          </div>
-        </div>
-      ) : !fileTemp ? (
-        <div style={{ marginTop: 10 }}>
-          <button onClick={() => setIsFreeze(false)}>Hapus</button>
-          <button
-            onClick={() => {
-              ReadImage(capturedImage);
-            }}
-          >
-            Upload
-          </button>
-        </div>
-      ) : (
-        <FormComponent
-          fileTemp={fileTemp}
-          onSave={handleSaveTemp}
-          onDelete={handleDeleteTemp}
-        />
-      )}
-
-      <div style={{ marginTop: 20 }}>
-        <h3>Gallery</h3>
-        <div style={{ display: "flex", width: "100%", gap: 10 }}>
+          </>
+        ) : (
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 120px)",
-              gap: 10,
+              padding: 10,
+              backgroundColor: "#ff6d6d",
+              borderRadius: 15,
+              color: "white",
+              fontWeight: "bold",
             }}
+            onClick={() => ReadImage(capturedImage)}
           >
-            {galleryImages.length === 0 && (
-              <p style={{ gridColumn: "1 / -1" }}>
-                Belum ada gambar tersimpan.
-              </p>
-            )}
-            {galleryImages.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  position: "relative",
-                  width: 120,
-                  height: 120 * aspectRatio,
-                  overflow: "visible",
-                  border: "1px solid #ccc",
-                  borderRadius: 8,
-                }}
-              >
-                <button
-                  onClick={() => removeImage(index)}
-                  style={{
-                    position: "absolute",
-                    top: "-13px",
-                    right: "-13px",
-                    background: "rgba(255, 0, 0, 1)",
-                    border: "none",
-                    color: "white",
-                    borderRadius: "50%",
-                    width: 26,
-                    height: 26,
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                    lineHeight: "18px",
-                    textAlign: "center",
-                    padding: 0,
-                  }}
-                  title={`Hapus gambar ${index + 1}`}
-                  aria-label={`Hapus gambar ${index + 1}`}
-                >
-                  ×
-                </button>
-                <img
-                  src={item.image}
-                  alt={`Gallery ${index + 1}`}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: 8,
-                  }}
-                />
-              </div>
-            ))}
+            Scan KTP
           </div>
-        </div>
+        )}
       </div>
 
       <Modal
