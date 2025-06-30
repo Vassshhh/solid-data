@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
-import FormComponent from "./FormComponent";
+import PaginatedFormEditable from "./PaginatedFormEditable";
 import pixelmatch from "pixelmatch";
+import Tesseract from "tesseract.js";
 
 const STORAGE_KEY = "camera_canvas_gallery";
 
@@ -53,11 +54,21 @@ const CameraCanvas = () => {
       null,
       canvasA.width,
       canvasA.height,
-      { threshold: 0.6 }
+      { threshold: 0.5 }
     );
 
     const similarity = diffPixels / (canvasA.width * canvasA.height);
     return similarity < 0.2; // you can adjust the threshold
+  };
+
+  const extractTextFromCanvas = async (canvas) => {
+    const dataUrl = canvas.toDataURL("image/png");
+
+    const result = await Tesseract.recognize(dataUrl, "ind", {
+      logger: (m) => console.log(m), // opsional: untuk melihat progress
+    });
+
+    return result.data.text;
   };
 
   const rectRef = useRef({
@@ -232,7 +243,22 @@ const CameraCanvas = () => {
     );
 
     const isSimilar = isImageSimilar(cropCanvas, sampleKtpCanvas);
-    setKTPdetected(isSimilar);
+    if (isSimilar) {
+      const extractedText = await extractTextFromCanvas(cropCanvas);
+      console.log("OCR Result:", extractedText);
+
+      const lowercaseText = extractedText.toLowerCase();
+
+      if (
+        lowercaseText.includes("provinsi") ||
+        lowercaseText.includes("nik") ||
+        lowercaseText.includes("kewarganegaraan")
+      ) {
+        setKTPdetected(true);
+      } else {
+        setKTPdetected(false);
+      }
+    }
 
     setLoading(false);
     // Continue to OCR etc...
@@ -582,6 +608,7 @@ const CameraCanvas = () => {
             </h4>
           </div>
         )}
+        {fileTemp && <PaginatedFormEditable data={fileTemp} />}
       </div>
 
       <Modal
