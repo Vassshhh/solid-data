@@ -581,32 +581,35 @@ const CameraCanvas = () => {
             <style>{spinnerStyle}</style>
           </div>
         ) : (
-          <div>
-            <h3 style={{ marginTop: 0 }}>
-              KTP {!KTPdetected && "Tidak"} Terdeteksi
-            </h3>
-            <div
-              style={{
-                padding: 10,
-                backgroundColor: "#ff6d6d",
-                borderRadius: 15,
-                color: "white",
-                fontWeight: "bold",
-              }}
-              onClick={() => ReadImage(capturedImage)}
-            >
-              {!KTPdetected && "Tetap"} Simpan
-            </div>
+          capturedImage &&
+          !fileTemp && (
+            <div>
+              <h3 style={{ marginTop: 0 }}>
+                KTP {!KTPdetected && "Tidak"} Terdeteksi
+              </h3>
+              <div
+                style={{
+                  padding: 10,
+                  backgroundColor: "#ff6d6d",
+                  borderRadius: 15,
+                  color: "white",
+                  fontWeight: "bold",
+                }}
+                onClick={() => ReadImage(capturedImage)}
+              >
+                {!KTPdetected && "Tetap"} Simpan
+              </div>
 
-            <h4
-              onClick={() => {
-                setFileTemp(null);
-                setIsFreeze(false);
-              }}
-            >
-              Hapus
-            </h4>
-          </div>
+              <h4
+                onClick={() => {
+                  setFileTemp(null);
+                  setIsFreeze(false);
+                }}
+              >
+                Hapus
+              </h4>
+            </div>
+          )
         )}
         {fileTemp && <PaginatedFormEditable data={fileTemp} />}
       </div>

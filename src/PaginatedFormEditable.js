@@ -36,20 +36,16 @@ const PaginatedFormEditable = ({ data }) => {
   const currentFields = fields.slice(startIndex, startIndex + fieldsPerPage);
 
   return (
-    <div
-      style={{
-        maxWidth: 400,
-        margin: "auto",
-        padding: 20,
-        border: "1px solid #ccc",
-        borderRadius: 10,
-      }}
-    >
-      <h3>Edit Form Data</h3>
-
+    <div>
       {currentFields.map((key) => (
-        <div key={key} style={{ marginBottom: 10 }}>
-          <label style={{ fontWeight: "bold", textTransform: "capitalize" }}>
+        <div key={key} style={{ marginBottom: 10, textAlign: "left" }}>
+          <label
+            style={{
+              fontWeight: "bold",
+              textTransform: "capitalize",
+              textAlign: "left",
+            }}
+          >
             {key}
           </label>
           <input
