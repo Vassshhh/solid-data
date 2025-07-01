@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import PaginatedFormEditable from "./PaginatedFormEditable";
-import pixelmatch from "pixelmatch";
-import Tesseract from "tesseract.js";
 
 const STORAGE_KEY = "camera_canvas_gallery";
 
@@ -41,35 +39,25 @@ const CameraCanvas = () => {
     });
   };
 
-  const isImageSimilar = (canvasA, canvasB) => {
-    const ctxA = canvasA.getContext("2d");
-    const ctxB = canvasB.getContext("2d");
+  // const isImageSimilar = (canvasA, canvasB) => {
+  //   const ctxA = canvasA.getContext("2d");
+  //   const ctxB = canvasB.getContext("2d");
 
-    const imgA = ctxA.getImageData(0, 0, canvasA.width, canvasA.height);
-    const imgB = ctxB.getImageData(0, 0, canvasB.width, canvasB.height);
+  //   const imgA = ctxA.getImageData(0, 0, canvasA.width, canvasA.height);
+  //   const imgB = ctxB.getImageData(0, 0, canvasB.width, canvasB.height);
 
-    const diffPixels = pixelmatch(
-      imgA.data,
-      imgB.data,
-      null,
-      canvasA.width,
-      canvasA.height,
-      { threshold: 0.5 }
-    );
+  //   const diffPixels = pixelmatch(
+  //     imgA.data,
+  //     imgB.data,
+  //     null,
+  //     canvasA.width,
+  //     canvasA.height,
+  //     { threshold: 0.5 }
+  //   );
 
-    const similarity = diffPixels / (canvasA.width * canvasA.height);
-    return similarity < 0.2; // you can adjust the threshold
-  };
-
-  const extractTextFromCanvas = async (canvas) => {
-    const dataUrl = canvas.toDataURL("image/png");
-
-    const result = await Tesseract.recognize(dataUrl, "ind", {
-      logger: (m) => console.log(m), // opsional: untuk melihat progress
-    });
-
-    return result.data.text;
-  };
+  //   const similarity = diffPixels / (canvasA.width * canvasA.height);
+  //   return similarity < 0.2; // you can adjust the threshold
+  // };
 
   const rectRef = useRef({
     x: 0,
@@ -235,49 +223,43 @@ const CameraCanvas = () => {
     const imageDataUrl = cropCanvas.toDataURL("image/png", 1.0);
     setCapturedImage(imageDataUrl);
 
-    // 👉 Load sample KTP and compare
-    const sampleKtpCanvas = await loadImageToCanvas(
-      "/ktp.jpeg",
-      cropCanvas.width,
-      cropCanvas.height
-    );
-
-    const isSimilar = isImageSimilar(cropCanvas, sampleKtpCanvas);
-    if (isSimilar) {
-      const extractedText = await extractTextFromCanvas(cropCanvas);
-      console.log("OCR Result:", extractedText);
-
-      const lowercaseText = extractedText.toLowerCase();
-
-      if (
-        lowercaseText.includes("provinsi") ||
-        lowercaseText.includes("nik") ||
-        lowercaseText.includes("kewarganegaraan")
-      ) {
-        setKTPdetected(true);
-      } else {
-        setKTPdetected(false);
-      }
-    }
-
+    setKTPdetected(true);
     setLoading(false);
     // Continue to OCR etc...
   };
+
+  function base64ToFile(base64Data, fileName) {
+    const arr = base64Data.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], fileName, { type: mime });
+  }
 
   const ReadImage = async (capturedImage) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      let res = await fetch(
+      // Ubah base64 ke file
+      const file = base64ToFile(capturedImage, "image.jpg");
+
+      // Gunakan FormData
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const res = await fetch(
         "https://bot.kediritechnopark.com/webhook/mastersnapper/read",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ image: capturedImage }),
+          body: formData,
         }
       );
 
@@ -480,18 +462,7 @@ const CameraCanvas = () => {
           rectHeight
         );
 
-        const ktpSample = new Image();
-        ktpSample.src = "/ktp.jpeg";
-        ktpSample.onload = () => {
-          const sampleCanvas = document.createElement("canvas");
-          sampleCanvas.width = rectWidth;
-          sampleCanvas.height = rectHeight;
-          const sampleCtx = sampleCanvas.getContext("2d");
-          sampleCtx.drawImage(ktpSample, 0, 0, rectWidth, rectHeight);
-
-          const isSimilar = isImageSimilar(cropCanvas, sampleCanvas);
-          setKTPdetected(isSimilar);
-        };
+        setKTPdetected(true);
       };
       image.src = imageDataUrl;
     };
@@ -539,8 +510,9 @@ const CameraCanvas = () => {
           backgroundColor: "white",
           borderRadius: 16,
           textAlign: "center",
-          top: "-17px",
-          position: "relative",
+          bottom: 0,
+          width: "100%",
+          position: "absolute",
           padding: "20px",
         }}
       >
@@ -588,9 +560,7 @@ const CameraCanvas = () => {
           capturedImage &&
           !fileTemp && (
             <div>
-              <h3 style={{ marginTop: 0 }}>
-                KTP {!KTPdetected && "Tidak"} Terdeteksi
-              </h3>
+              <h4 style={{ marginTop: 0 }}>Tinjau Gambar</h4>
               <div
                 style={{
                   padding: 10,
