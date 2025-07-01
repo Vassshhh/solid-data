@@ -35,7 +35,7 @@ const Login = () => {
 
       if (loginData?.success && loginData?.token) {
         localStorage.setItem("token", loginData.token);
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       } else {
         setError(loginData?.message || "Username atau password salah");
       }
@@ -48,7 +48,7 @@ const Login = () => {
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginBox}>
-        <img src="/dermalounge.jpg" alt="Logo" className={styles.logo} />
+        <img src="/PSI.png" alt="Logo" className={styles.logo} />
         <h1 className={styles.h1}>PSI Admin Login</h1>
         <p className={styles.subtitle}>
           Silakan masuk untuk melanjutkan ke dashboard

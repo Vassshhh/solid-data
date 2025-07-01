@@ -267,12 +267,16 @@ const CameraCanvas = () => {
   const ReadImage = async (capturedImage) => {
     try {
       setLoading(true);
+      const token = localStorage.getItem("token");
 
       let res = await fetch(
         "https://bot.kediritechnopark.com/webhook/mastersnapper/read",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ image: capturedImage }),
         }
       );

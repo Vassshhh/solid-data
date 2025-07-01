@@ -144,10 +144,23 @@ const Dashboard = () => {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={styles.dropdownToggle}
-            aria-expanded={isMenuOpen ? "true" : "false"} /* Aksesibilitas */
-            aria-haspopup="true" /* Aksesibilitas */
+            aria-expanded={isMenuOpen ? "true" : "false"}
+            aria-haspopup="true"
           >
-            ☰
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="12" cy="5" r="1" />
+              <circle cx="12" cy="19" r="1" />
+            </svg>
           </button>
           {isMenuOpen && (
             <div className={styles.dropdownMenu}>
@@ -155,7 +168,7 @@ const Dashboard = () => {
                 onClick={() => {
                   navigate("/profile");
                   setIsMenuOpen(false);
-                }} /* Tutup menu setelah klik */
+                }}
                 className={styles.dropdownItem}
               >
                 Profile
@@ -164,7 +177,7 @@ const Dashboard = () => {
                 onClick={() => {
                   navigate("/scan");
                   setIsMenuOpen(false);
-                }} /* Tutup menu setelah klik */
+                }}
                 className={styles.dropdownItem}
               >
                 Scan
@@ -173,7 +186,7 @@ const Dashboard = () => {
                 onClick={() => {
                   handleLogout();
                   setIsMenuOpen(false);
-                }} /* Tutup menu setelah klik */
+                }}
                 className={styles.dropdownItem}
               >
                 Logout
@@ -187,45 +200,47 @@ const Dashboard = () => {
         {/* Summary Cards */}
         <div className={styles.summaryCardsContainer}>
           <div className={styles.summaryCard}>
-            <h3>Total Hari Ini</h3>
-            <p>{totalFilesSentToday}</p>
+            <h3>Hari Ini</h3>
+            <p>{totalFilesSentToday.toLocaleString()}</p>
           </div>
           <div className={styles.summaryCard}>
-            <h3>Total Bulan Ini</h3>
-            <p>{totalFilesSentMonth}</p>
+            <h3>Bulan Ini</h3>
+            <p>{totalFilesSentMonth.toLocaleString()}</p>
           </div>
           <div className={styles.summaryCard}>
             <h3>Total Keseluruhan</h3>
-            <p>{totalFilesSentOverall}</p>
+            <p>{totalFilesSentOverall.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Grid for Form (Admin) and Chart (Admin & Officer) */}
         <div className={styles.dashboardGrid}>
-          {user.role === "admin" /* Render form hanya jika admin */ && (
+          {user.role === "admin" && (
             <div className={styles.formSection}>
               <h2>Tambah Officer Baru</h2>
               <form onSubmit={handleAddOfficer} className={styles.form}>
                 <label>
-                  Username:
+                  Username
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Masukkan username"
                     required
                   />
                 </label>
                 <label>
-                  Password:
+                  Password
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan password"
                     required
                   />
                 </label>
                 <button type="submit" className={styles.submitButton}>
-                  Add
+                  Tambah Officer
                 </button>
               </form>
 
@@ -238,7 +253,7 @@ const Dashboard = () => {
 
           {/* Chart Section - Visible to both Admin and Officer */}
           <div className={styles.chartSection}>
-            <h2>Performa Pengiriman File Petugas</h2>
+            <h2>Performa Pengiriman File</h2>
             {officerPerformanceData.length > 0 ? (
               // Contoh implementasi Recharts:
               /*
@@ -249,25 +264,28 @@ const Dashboard = () => {
                   <Tooltip />
                   <Bar
                     dataKey="filesSent"
-                    fill={getComputedStyle(document.documentElement).getPropertyValue('--primary-red')}
+                    fill={getComputedStyle(document.documentElement).getPropertyValue('--primary-blue')}
                   />
                 </BarChart>
               </ResponsiveContainer>
               */
               <div className={styles.chartPlaceholder}>
-                Grafik performa petugas akan ditampilkan di sini. (Integrasikan
-                library grafik seperti Recharts/Chart.js)
+                📊 Grafik performa akan ditampilkan di sini
+                <br />
+                <small>Integrasikan dengan Recharts atau Chart.js</small>
               </div>
             ) : (
-              <p className={styles.warning}>
-                Tidak ada data performa petugas untuk ditampilkan.
-              </p>
+              <div className={styles.warning}>
+                📋 Belum ada data performa untuk ditampilkan
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className={styles.footer}>&copy; 2025 Kediri Technopark</div>
+      <div className={styles.footer}>
+        © 2025 Kediri Technopark • Dashboard PSI
+      </div>
     </div>
   );
 };
