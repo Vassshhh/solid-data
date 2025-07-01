@@ -133,7 +133,7 @@ const Dashboard = () => {
     <div className={styles.dashboardContainer}>
       <div className={styles.dashboardHeader}>
         <div className={styles.logoAndTitle}>
-          <img src="/dermalounge.jpg" alt="Bot Avatar" />
+          <img src="/PSI.png" alt="Bot Avatar" />
           <h1 className={styles.h1}>PSI Dashboard</h1>
         </div>
 
