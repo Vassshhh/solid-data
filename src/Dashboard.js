@@ -8,10 +8,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState("officer");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [user, setUser] = useState({});
@@ -67,7 +65,6 @@ const Dashboard = () => {
         if (data[0].payload.officerPerformance) {
           setOfficerPerformanceData(data[0].payload.officerPerformance);
         }
-
       } catch (error) {
         console.error("Token tidak valid:", error.message);
         localStorage.removeItem("token");
@@ -102,7 +99,6 @@ const Dashboard = () => {
           body: JSON.stringify({
             username,
             password,
-            role: selectedRole,
           }),
         }
       );
@@ -116,7 +112,6 @@ const Dashboard = () => {
       setSuccessMessage("Officer berhasil ditambahkan");
       setUsername("");
       setPassword("");
-      setSelectedRole("officer");
       setErrorMessage("");
       // Pertimbangkan untuk memuat ulang data performa jika penambahan officer baru mempengaruhi grafik
     } catch (error) {
@@ -144,7 +139,9 @@ const Dashboard = () => {
         </div>
 
         <div className={styles.dropdownContainer} ref={menuRef}>
-          <span className={styles.userDisplayName}>{user.username || "Guest"}</span>
+          <span className={styles.userDisplayName}>
+            {user.username || "Guest"}
+          </span>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={styles.dropdownToggle}
@@ -156,13 +153,19 @@ const Dashboard = () => {
           {isMenuOpen && (
             <div className={styles.dropdownMenu}>
               <button
-                onClick={() => { navigate("/profile"); setIsMenuOpen(false); }} /* Tutup menu setelah klik */
+                onClick={() => {
+                  navigate("/profile");
+                  setIsMenuOpen(false);
+                }} /* Tutup menu setelah klik */
                 className={styles.dropdownItem}
               >
                 Profile
               </button>
               <button
-                onClick={() => { handleLogout(); setIsMenuOpen(false); }} /* Tutup menu setelah klik */
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }} /* Tutup menu setelah klik */
                 className={styles.dropdownItem}
               >
                 Logout
@@ -191,7 +194,7 @@ const Dashboard = () => {
 
         {/* Grid for Form (Admin) and Chart (Admin & Officer) */}
         <div className={styles.dashboardGrid}>
-          {user.role === "admin" && ( /* Render form hanya jika admin */
+          {user.role === "admin" /* Render form hanya jika admin */ && (
             <div className={styles.formSection}>
               <h2>Tambah Officer Baru</h2>
               <form onSubmit={handleAddOfficer} className={styles.form}>
@@ -213,23 +216,14 @@ const Dashboard = () => {
                     required
                   />
                 </label>
-                <label>
-                  Role:
-                  <select
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value)}
-                    required
-                  >
-                    <option value="officer">Officer</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </label>
                 <button type="submit" className={styles.submitButton}>
                   Add
                 </button>
               </form>
 
-              {successMessage && <p className={styles.success}>{successMessage}</p>}
+              {successMessage && (
+                <p className={styles.success}>{successMessage}</p>
+              )}
               {errorMessage && <p className={styles.error}>{errorMessage}</p>}
             </div>
           )}
@@ -253,11 +247,13 @@ const Dashboard = () => {
               </ResponsiveContainer>
               */
               <div className={styles.chartPlaceholder}>
-                  Grafik performa petugas akan ditampilkan di sini.
-                  (Integrasikan library grafik seperti Recharts/Chart.js)
+                Grafik performa petugas akan ditampilkan di sini. (Integrasikan
+                library grafik seperti Recharts/Chart.js)
               </div>
             ) : (
-              <p className={styles.warning}>Tidak ada data performa petugas untuk ditampilkan.</p>
+              <p className={styles.warning}>
+                Tidak ada data performa petugas untuk ditampilkan.
+              </p>
             )}
           </div>
         </div>

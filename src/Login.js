@@ -49,7 +49,7 @@ const Login = () => {
     <div className={styles.loginContainer}>
       <div className={styles.loginBox}>
         <img src="/dermalounge.jpg" alt="Logo" className={styles.logo} />
-        <h1 className={styles.h1}>Dermalounge AI Admin Login</h1>
+        <h1 className={styles.h1}>PSI Admin Login</h1>
         <p className={styles.subtitle}>
           Silakan masuk untuk melanjutkan ke dashboard
         </p>
