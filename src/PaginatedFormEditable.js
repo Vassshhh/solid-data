@@ -7,11 +7,14 @@ const formatDate = (iso) => {
   return date.toISOString().split("T")[0]; // YYYY-MM-DD
 };
 
+const isDateField = (value) =>
+  value && typeof value === "object" && value.type === "dateTime";
+
 const PaginatedFormEditable = ({ data }) => {
   const [formData, setFormData] = useState(() => {
     const flat = {};
     Object.entries(data[0]).forEach(([key, value]) => {
-      if (value && typeof value === "object" && "value" in value) {
+      if (isDateField(value)) {
         flat[key] = formatDate(value.value);
       } else {
         flat[key] = value;
@@ -20,7 +23,9 @@ const PaginatedFormEditable = ({ data }) => {
     return flat;
   });
 
-  const fields = Object.keys(formData);
+  const fields = Object.keys(formData).filter(
+    (key) => key.toLowerCase() !== "total"
+  );
   const fieldsPerPage = 3;
   const [page, setPage] = useState(0);
   const totalPages = Math.ceil(fields.length / fieldsPerPage);
@@ -44,21 +49,68 @@ const PaginatedFormEditable = ({ data }) => {
               fontWeight: "bold",
               textTransform: "capitalize",
               textAlign: "left",
+              display: "block",
+              marginBottom: 5,
             }}
           >
             {key}
           </label>
-          <input
-            type="text"
-            value={formData[key] || ""}
-            onChange={(e) => handleChange(key, e.target.value)}
-            style={{
-              width: "100%",
-              padding: 8,
-              borderRadius: 5,
-              border: "1px solid #ddd",
-            }}
-          />
+
+          {/* Tanggal */}
+          {["Tanggal Lahir", "Berlaku Hingga", "Tanggal Dibuat"].includes(
+            key
+          ) ? (
+            formData[key] ? (
+              <input
+                type="date"
+                value={formData[key]}
+                onChange={(e) => handleChange(key, e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: 8,
+                  borderRadius: 5,
+                  border: "1px solid #ddd",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  padding: 8,
+                  border: "1px solid #ddd",
+                  borderRadius: 5,
+                  backgroundColor: "#f9f9f9",
+                }}
+              >
+                Seumur Hidup{" "}
+                <button
+                  onClick={() =>
+                    handleChange(key, new Date().toISOString().split("T")[0])
+                  }
+                  style={{
+                    marginLeft: 10,
+                    padding: "4px 8px",
+                    fontSize: 12,
+                    cursor: "pointer",
+                  }}
+                >
+                  Isi Tanggal
+                </button>
+              </div>
+            )
+          ) : (
+            // Input biasa
+            <input
+              type="text"
+              value={formData[key] || ""}
+              onChange={(e) => handleChange(key, e.target.value)}
+              style={{
+                width: "100%",
+                padding: 8,
+                borderRadius: 5,
+                border: "1px solid #ddd",
+              }}
+            />
+          )}
         </div>
       ))}
 

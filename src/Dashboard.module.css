@@ -1,43 +1,15 @@
-<<<<<<< HEAD
-.dashboard {
-  display: flex;
-  width: 100%;
-  max-width: 1200px;
-  background: white;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.mainContent {
-  flex: 1;
-  padding: 1rem;
-}
-
-.cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-@media (max-width: 768px) {
-  .dashboard {
-    flex-direction: column;
-  }
-}
-=======
 /* Variabel Warna */
 :root {
-  --primary-red: #E53935;
-  --secondary-red: #EF5350;
-  --dark-red: #C62828;
-  --light-gray: #EEEEEE;
+  --primary-red: #e53935;
+  --secondary-red: #ef5350;
+  --dark-red: #c62828;
+  --light-gray: #eeeeee;
   --dark-gray: #424242;
-  --white: #FFFFFF;
-  --success-green: #4CAF50;
-  --warning-yellow: #FFC107;
-  --text-color-light: #F5F5F5; /* Teks terang di latar belakang gelap */
-  --text-color-dark: #212121;  /* Teks gelap di latar belakang terang */
+  --white: #ffffff;
+  --success-green: #4caf50;
+  --warning-yellow: #ffc107;
+  --text-color-light: #f5f5f5; /* Teks terang di latar belakang gelap */
+  --text-color-dark: #212121; /* Teks gelap di latar belakang terang */
 }
 
 /* Base Styles & Reset */
@@ -47,7 +19,7 @@
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Font lebih modern */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Font lebih modern */
   line-height: 1.6;
   color: var(--text-color-dark);
 }
@@ -100,10 +72,10 @@ body {
 }
 
 .userDisplayName {
-    color: var(--text-color-light);
-    font-weight: bold;
-    font-size: 0.9rem;
-    white-space: nowrap; /* Pastikan nama pengguna tidak patah baris */
+  color: var(--text-color-light);
+  font-weight: bold;
+  font-size: 0.9rem;
+  white-space: nowrap; /* Pastikan nama pengguna tidak patah baris */
 }
 
 .dropdownToggle {
@@ -170,7 +142,7 @@ body {
   padding: 1rem;
   background-color: var(--white);
   border-radius: 0.6rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .summaryCard {
@@ -347,7 +319,7 @@ body {
   }
 
   .userDisplayName {
-      font-size: 1rem;
+    font-size: 1rem;
   }
 
   .dropdownToggle {
@@ -356,11 +328,11 @@ body {
   }
 
   .dropdownMenu {
-      min-width: 10rem;
+    min-width: 10rem;
   }
 
   .dropdownItem {
-      font-size: 1rem;
+    font-size: 1rem;
   }
 
   .mainContent {
@@ -481,8 +453,8 @@ body {
 /* Jika hanya officer, pastikan chart mengambil seluruh lebar kolom */
 /* Ini sebenarnya sudah ditangani oleh grid secara default, tapi bisa diperjelas */
 @media (min-width: 768px) {
-  .dashboardGrid > *:only-child { /* Jika hanya ada satu anak elemen di dalam dashboardGrid */
+  .dashboardGrid > *:only-child {
+    /* Jika hanya ada satu anak elemen di dalam dashboardGrid */
     grid-column: 1 / -1; /* Ambil seluruh lebar dari kolom pertama hingga terakhir */
   }
 }
->>>>>>> b9b4e4c859bd8face05c8d89d7f0c914d9e84a04

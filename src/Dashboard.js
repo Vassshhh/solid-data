@@ -1,24 +1,3 @@
-<<<<<<< HEAD
-import React from "react";
-import styles from "./Dashboard.module.css";
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
-import RoleCard from "./components/RoleCard";
-import Chart from "./components/Chart";
-
-const Dashboard = () => {
-  return (
-    <div className={styles.dashboard}>
-      <Sidebar />
-      <div className={styles.mainContent}>
-        <Header />
-        <div className={styles.cards}>
-          <RoleCard title="Officer" value="$4644" code="#df3422f" />
-          <RoleCard title="Medtion" value="$8421" />
-        </div>
-        <Chart />
-      </div>
-=======
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./Dashboard.module.css";
 import { useNavigate } from "react-router-dom";
@@ -88,7 +67,6 @@ const Dashboard = () => {
         if (data[0].payload.officerPerformance) {
           setOfficerPerformanceData(data[0].payload.officerPerformance);
         }
-
       } catch (error) {
         console.error("Token tidak valid:", error.message);
         localStorage.removeItem("token");
@@ -102,7 +80,6 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.removeItem("role");
     window.location.reload();
   };
 
@@ -165,7 +142,9 @@ const Dashboard = () => {
         </div>
 
         <div className={styles.dropdownContainer} ref={menuRef}>
-          <span className={styles.userDisplayName}>{user.username || "Guest"}</span>
+          <span className={styles.userDisplayName}>
+            {user.username || "Guest"}
+          </span>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={styles.dropdownToggle}
@@ -177,13 +156,28 @@ const Dashboard = () => {
           {isMenuOpen && (
             <div className={styles.dropdownMenu}>
               <button
-                onClick={() => { navigate("/profile"); setIsMenuOpen(false); }} /* Tutup menu setelah klik */
+                onClick={() => {
+                  navigate("/profile");
+                  setIsMenuOpen(false);
+                }} /* Tutup menu setelah klik */
                 className={styles.dropdownItem}
               >
                 Profile
               </button>
               <button
-                onClick={() => { handleLogout(); setIsMenuOpen(false); }} /* Tutup menu setelah klik */
+                onClick={() => {
+                  navigate("/scan");
+                  setIsMenuOpen(false);
+                }} /* Tutup menu setelah klik */
+                className={styles.dropdownItem}
+              >
+                Scan
+              </button>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }} /* Tutup menu setelah klik */
                 className={styles.dropdownItem}
               >
                 Logout
@@ -212,7 +206,7 @@ const Dashboard = () => {
 
         {/* Grid for Form (Admin) and Chart (Admin & Officer) */}
         <div className={styles.dashboardGrid}>
-          {user.role === "admin" && ( /* Render form hanya jika admin */
+          {user.role === "admin" /* Render form hanya jika admin */ && (
             <div className={styles.formSection}>
               <h2>Tambah Officer Baru</h2>
               <form onSubmit={handleAddOfficer} className={styles.form}>
@@ -250,7 +244,9 @@ const Dashboard = () => {
                 </button>
               </form>
 
-              {successMessage && <p className={styles.success}>{successMessage}</p>}
+              {successMessage && (
+                <p className={styles.success}>{successMessage}</p>
+              )}
               {errorMessage && <p className={styles.error}>{errorMessage}</p>}
             </div>
           )}
@@ -274,24 +270,21 @@ const Dashboard = () => {
               </ResponsiveContainer>
               */
               <div className={styles.chartPlaceholder}>
-                  Grafik performa petugas akan ditampilkan di sini.
-                  (Integrasikan library grafik seperti Recharts/Chart.js)
+                Grafik performa petugas akan ditampilkan di sini. (Integrasikan
+                library grafik seperti Recharts/Chart.js)
               </div>
             ) : (
-              <p className={styles.warning}>Tidak ada data performa petugas untuk ditampilkan.</p>
+              <p className={styles.warning}>
+                Tidak ada data performa petugas untuk ditampilkan.
+              </p>
             )}
           </div>
         </div>
       </div>
 
       <div className={styles.footer}>&copy; 2025 Kediri Technopark</div>
->>>>>>> b9b4e4c859bd8face05c8d89d7f0c914d9e84a04
     </div>
   );
 };
 
-<<<<<<< HEAD
 export default Dashboard;
-=======
-export default Dashboard;
->>>>>>> b9b4e4c859bd8face05c8d89d7f0c914d9e84a04
