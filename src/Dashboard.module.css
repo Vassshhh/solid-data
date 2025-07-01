@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .dashboard {
   display: flex;
   width: 100%;
@@ -24,3 +25,464 @@
     flex-direction: column;
   }
 }
+=======
+/* Variabel Warna */
+:root {
+  --primary-red: #E53935;
+  --secondary-red: #EF5350;
+  --dark-red: #C62828;
+  --light-gray: #EEEEEE;
+  --dark-gray: #424242;
+  --white: #FFFFFF;
+  --success-green: #4CAF50;
+  --warning-yellow: #FFC107;
+  --text-color-light: #F5F5F5; /* Teks terang di latar belakang gelap */
+  --text-color-dark: #212121;  /* Teks gelap di latar belakang terang */
+}
+
+/* Base Styles & Reset */
+* {
+  box-sizing: border-box; /* Pastikan padding dan border tidak menambah lebar elemen */
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Font lebih modern */
+  line-height: 1.6;
+  color: var(--text-color-dark);
+}
+
+.dashboardContainer {
+  background-color: var(--light-gray);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Header --- */
+.dashboardHeader {
+  background-color: var(--primary-red);
+  color: var(--text-color-light);
+  padding: 1rem; /* Menggunakan rem */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.logoAndTitle {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0; /* Mencegah logo dan judul mengecil terlalu banyak */
+}
+
+.logoAndTitle img {
+  width: 2.5rem; /* Ukuran rem */
+  height: 2.5rem;
+  border-radius: 50%;
+  margin-right: 0.8rem;
+}
+
+.dashboardHeader .h1 {
+  margin: 0;
+  font-size: 1.5rem; /* Ukuran rem untuk mobile */
+  font-weight: bold;
+  white-space: nowrap; /* Mencegah judul patah baris */
+}
+
+/* Dropdown Menu */
+.dropdownContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-shrink: 0; /* Mencegah mengecil */
+}
+
+.userDisplayName {
+    color: var(--text-color-light);
+    font-weight: bold;
+    font-size: 0.9rem;
+    white-space: nowrap; /* Pastikan nama pengguna tidak patah baris */
+}
+
+.dropdownToggle {
+  background-color: var(--dark-red);
+  color: var(--text-color-light);
+  border: none;
+  padding: 0.5rem 0.75rem; /* Padding rem */
+  border-radius: 0.3rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  min-width: 3rem; /* Pastikan tombol tidak terlalu kecil */
+}
+
+.dropdownToggle:hover {
+  background-color: var(--secondary-red);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 0.5rem); /* Posisikan di bawah tombol dengan jarak */
+  right: 0;
+  background-color: var(--white);
+  border-radius: 0.3rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 8rem; /* Lebar minimum */
+  overflow: hidden; /* Pastikan item tidak keluar */
+}
+
+.dropdownItem {
+  background: none;
+  border: none;
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-color-dark);
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+  white-space: nowrap; /* Mencegah item menu patah baris */
+}
+
+.dropdownItem:hover {
+  background-color: var(--light-gray);
+}
+
+/* --- Main Content --- */
+.mainContent {
+  flex-grow: 1;
+  padding: 1.25rem; /* Padding rem */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Jarak antar bagian utama */
+}
+
+/* Summary Cards Container */
+.summaryCardsContainer {
+  display: flex;
+  flex-wrap: wrap; /* Mengizinkan kartu melipat */
+  gap: 1rem; /* Jarak antar kartu */
+  justify-content: center; /* Tengahkan kartu di mobile */
+  padding: 1rem;
+  background-color: var(--white);
+  border-radius: 0.6rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.summaryCard {
+  background-color: var(--light-gray);
+  color: var(--text-color-dark);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--secondary-red);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  flex: 1 1 calc(50% - 0.75rem); /* Di layar mobile, 2 kartu per baris */
+  min-width: 120px; /* Batasan agar tidak terlalu kecil */
+  max-width: 250px; /* Batasan agar tidak terlalu lebar di mobile */
+}
+
+.summaryCard h3 {
+  margin-top: 0;
+  font-size: 0.9rem;
+  color: var(--dark-red);
+}
+
+.summaryCard p {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: var(--dark-gray);
+  margin-bottom: 0;
+}
+
+/* Dashboard Grid for Form and Chart */
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: 1fr; /* Default: satu kolom untuk mobile */
+  gap: 1.5rem; /* Jarak antar bagian */
+  flex-grow: 1; /* Agar grid bisa membesar mengisi sisa ruang */
+}
+
+.formSection,
+.chartSection {
+  background-color: var(--white);
+  padding: 1.5rem; /* Padding rem */
+  border-radius: 0.6rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.formSection h2,
+.chartSection h2 {
+  color: var(--dark-red);
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  text-align: center;
+  font-size: 1.4rem;
+}
+
+.form label {
+  display: block;
+  margin-bottom: 0.8rem;
+  color: var(--text-color-dark);
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.form input[type="text"],
+.form input[type="password"],
+.form select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.3rem;
+  border: 1px solid var(--light-gray);
+  border-radius: 0.3rem;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form input[type="text"]:focus,
+.form input[type="password"]:focus,
+.form select:focus {
+  border-color: var(--primary-red);
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2); /* Ring focus */
+  outline: none;
+}
+
+.submitButton {
+  background-color: var(--primary-red);
+  color: var(--white);
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 1.25rem;
+  width: 100%;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.submitButton:hover {
+  background-color: var(--secondary-red);
+  transform: translateY(-2px); /* Efek sedikit naik */
+}
+
+/* Messages */
+.success {
+  background-color: #e6ffe6;
+  color: var(--success-green);
+  border: 1px solid var(--success-green);
+  padding: 0.8rem;
+  border-radius: 0.3rem;
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.error {
+  background-color: #ffe6e6;
+  color: var(--primary-red);
+  border: 1px solid var(--primary-red);
+  padding: 0.8rem;
+  border-radius: 0.3rem;
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.warning {
+  background-color: #fffbe6;
+  color: var(--warning-yellow);
+  border: 1px solid var(--warning-yellow);
+  padding: 1rem;
+  border-radius: 0.3rem;
+  margin-top: 1.25rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* Footer */
+.footer {
+  background-color: var(--dark-red);
+  color: var(--text-color-light);
+  text-align: center;
+  padding: 0.75rem;
+  margin-top: auto;
+  font-size: 0.85rem;
+}
+
+.chartPlaceholder {
+  background-color: var(--light-gray);
+  height: 20rem; /* Menggunakan rem */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--dark-gray);
+  font-style: italic;
+  border-radius: 0.6rem;
+  border: 1px dashed var(--secondary-red);
+  font-size: 1rem;
+}
+
+/* --- Media Queries for Tablets and Desktops --- */
+
+/* Tablet-sized screens and up */
+@media (min-width: 768px) {
+  .dashboardHeader {
+    padding: 1rem 2rem;
+  }
+
+  .logoAndTitle img {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .dashboardHeader .h1 {
+    font-size: 1.8rem;
+  }
+
+  .userDisplayName {
+      font-size: 1rem;
+  }
+
+  .dropdownToggle {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+  }
+
+  .dropdownMenu {
+      min-width: 10rem;
+  }
+
+  .dropdownItem {
+      font-size: 1rem;
+  }
+
+  .mainContent {
+    padding: 1.5rem 2.5rem; /* Padding lebih besar di tablet/desktop */
+    gap: 2rem;
+  }
+
+  .summaryCardsContainer {
+    justify-content: flex-start; /* Sejajarkan ke kiri di tablet/desktop */
+    padding: 1.5rem;
+  }
+
+  .summaryCard {
+    flex: 1 1 calc(33.33% - 1rem); /* 3 kartu per baris di tablet */
+    max-width: 200px; /* Batasi lebar kartu agar tetap rapi */
+  }
+
+  .summaryCard h3 {
+    font-size: 1rem;
+  }
+
+  .summaryCard p {
+    font-size: 2rem;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: 1fr 2fr; /* Dua kolom: form (1/3), chart (2/3) */
+    gap: 2rem;
+  }
+
+  .formSection,
+  .chartSection {
+    padding: 2rem;
+  }
+
+  .formSection h2,
+  .chartSection h2 {
+    font-size: 1.6rem;
+  }
+
+  .form label {
+    font-size: 1rem;
+  }
+
+  .form input[type="text"],
+  .form input[type="password"],
+  .form select {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+
+  .submitButton {
+    padding: 1rem 1.8rem;
+    font-size: 1.1rem;
+  }
+
+  .warning {
+    font-size: 1rem;
+  }
+
+  .chartPlaceholder {
+    height: 25rem; /* Tinggi placeholder lebih besar di tablet/desktop */
+  }
+}
+
+/* Desktop-sized screens and up */
+@media (min-width: 1024px) {
+  .dashboardHeader {
+    padding: 1.5rem 3rem;
+  }
+
+  .logoAndTitle img {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .dashboardHeader .h1 {
+    font-size: 2.2rem;
+  }
+
+  .mainContent {
+    padding: 2rem 4rem;
+    gap: 2.5rem;
+  }
+
+  .summaryCardsContainer {
+    padding: 2rem;
+  }
+
+  .summaryCard {
+    flex: 0 0 auto; /* Ukuran tetap di desktop */
+    min-width: 180px;
+  }
+
+  .dashboardGrid {
+    gap: 2.5rem;
+  }
+
+  .formSection,
+  .chartSection {
+    padding: 2.5rem;
+  }
+
+  .formSection h2,
+  .chartSection h2 {
+    font-size: 1.8rem;
+  }
+
+  .submitButton {
+    padding: 1.1rem 2rem;
+  }
+
+  .chartPlaceholder {
+    height: 30rem;
+  }
+}
+
+/* Jika hanya officer, pastikan chart mengambil seluruh lebar kolom */
+/* Ini sebenarnya sudah ditangani oleh grid secara default, tapi bisa diperjelas */
+@media (min-width: 768px) {
+  .dashboardGrid > *:only-child { /* Jika hanya ada satu anak elemen di dalam dashboardGrid */
+    grid-column: 1 / -1; /* Ambil seluruh lebar dari kolom pertama hingga terakhir */
+  }
+}
+>>>>>>> b9b4e4c859bd8face05c8d89d7f0c914d9e84a04
