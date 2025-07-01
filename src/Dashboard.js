@@ -8,10 +8,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState("officer");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [user, setUser] = useState({});
@@ -100,7 +98,6 @@ const Dashboard = () => {
           body: JSON.stringify({
             username,
             password,
-            role: selectedRole,
           }),
         }
       );
@@ -114,7 +111,6 @@ const Dashboard = () => {
       setSuccessMessage("Officer berhasil ditambahkan");
       setUsername("");
       setPassword("");
-      setSelectedRole("officer");
       setErrorMessage("");
       // Pertimbangkan untuk memuat ulang data performa jika penambahan officer baru mempengaruhi grafik
     } catch (error) {
@@ -227,17 +223,6 @@ const Dashboard = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
-                </label>
-                <label>
-                  Role:
-                  <select
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value)}
-                    required
-                  >
-                    <option value="officer">Officer</option>
-                    <option value="admin">Admin</option>
-                  </select>
                 </label>
                 <button type="submit" className={styles.submitButton}>
                   Add
