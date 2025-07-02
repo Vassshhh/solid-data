@@ -10,7 +10,7 @@ const formatDate = (iso) => {
 const isDateField = (value) =>
   value && typeof value === "object" && value.type === "dateTime";
 
-const PaginatedFormEditable = ({ data }) => {
+const PaginatedFormEditable = ({ data, handleSimpan }) => {
   const [formData, setFormData] = useState(() => {
     const flat = {};
     Object.entries(data[0]).forEach(([key, value]) => {
@@ -127,6 +127,8 @@ const PaginatedFormEditable = ({ data }) => {
         >
           Back
         </button>
+
+        <button onClick={() => handleSimpan(formData)}>Simpan</button>
 
         <button
           onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}

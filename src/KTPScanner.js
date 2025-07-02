@@ -274,20 +274,29 @@ const CameraCanvas = () => {
     }
   };
 
-  const handleSaveTemp = async (correctedData) => {
+  const handleSaveTemp = async (verifiedData) => {
     try {
-      await fetch(
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      const formData = new FormData();
+
+      // Tambahkan data terverifikasi sebagai JSON string
+      formData.append("data", JSON.stringify(verifiedData));
+
+      const res = await fetch(
         "https://bot.kediritechnopark.com/webhook/mastersnapper/save",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ correctedData }),
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Jangan set Content-Type secara manual untuk FormData
+          },
+          body: formData,
         }
       );
 
-      const updatedGallery = [fileTemp, ...galleryImages];
-      setGalleryImages(updatedGallery);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedGallery));
+      setLoading(false);
       setFileTemp(null);
     } catch (err) {
       console.error("Gagal menyimpan ke server:", err);
@@ -571,7 +580,7 @@ const CameraCanvas = () => {
                 }}
                 onClick={() => ReadImage(capturedImage)}
               >
-                {!KTPdetected && "Tetap"} Simpan
+                Scan
               </div>
 
               <h4
@@ -585,7 +594,12 @@ const CameraCanvas = () => {
             </div>
           )
         )}
-        {fileTemp && <PaginatedFormEditable data={fileTemp} />}
+        {fileTemp && (
+          <PaginatedFormEditable
+            data={fileTemp}
+            handleSimpan={(data) => handleSaveTemp(data)}
+          />
+        )}
       </div>
 
       <Modal
