@@ -283,7 +283,7 @@ body {
 }
 
 .submitButton:hover {
-  background-color: var(--dark-blue);
+  background-color: #d03b3b;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -316,9 +316,9 @@ body {
 }
 
 .warning {
-  background-color: rgb(245 158 11 / 0.1);
-  color: var(--warning-amber);
-  border: 1px solid rgb(245 158 11 / 0.2);
+  background-color: #ef444417;
+  color: #ef4444;
+  border: 1px solid #ef444433;
   padding: 1rem;
   border-radius: 0.5rem;
   margin-top: 1rem;

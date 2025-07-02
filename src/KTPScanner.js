@@ -266,6 +266,11 @@ const CameraCanvas = () => {
       setLoading(false);
 
       const data = await res.json();
+      if (data.responseCode == 409) {
+        console.log(409);
+        setFileTemp({ error: 409 });
+        return;
+      }
       console.log(data);
 
       setFileTemp(data);
@@ -530,7 +535,7 @@ const CameraCanvas = () => {
             <div
               style={{
                 padding: 10,
-                backgroundColor: "#ff6d6d",
+                backgroundColor: "#ef4444",
                 borderRadius: 15,
                 color: "white",
                 fontWeight: "bold",
@@ -543,7 +548,7 @@ const CameraCanvas = () => {
             <div
               style={{
                 padding: 10,
-                backgroundColor: "#ff6d6d",
+                backgroundColor: "#ef4444",
                 borderRadius: 15,
                 color: "white",
                 fontWeight: "bold",
@@ -567,13 +572,13 @@ const CameraCanvas = () => {
           </div>
         ) : (
           capturedImage &&
-          !fileTemp && (
+          (!fileTemp || fileTemp.error == undefined) && (
             <div>
               <h4 style={{ marginTop: 0 }}>Tinjau Gambar</h4>
               <div
                 style={{
                   padding: 10,
-                  backgroundColor: "#ff6d6d",
+                  backgroundColor: "#ef4444",
                   borderRadius: 15,
                   color: "white",
                   fontWeight: "bold",
@@ -594,11 +599,25 @@ const CameraCanvas = () => {
             </div>
           )
         )}
-        {fileTemp && (
+        {fileTemp && fileTemp.error != "409" ? (
           <PaginatedFormEditable
             data={fileTemp}
             handleSimpan={(data) => handleSaveTemp(data)}
           />
+        ) : (
+          fileTemp && (
+            <>
+              <h4>KTP Sudah Terdaftar</h4>
+              <h4
+                onClick={() => {
+                  setFileTemp(null);
+                  setIsFreeze(false);
+                }}
+              >
+                Hapus
+              </h4>
+            </>
+          )
         )}
       </div>
 
