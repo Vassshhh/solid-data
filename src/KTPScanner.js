@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import Modal from "./Modal";
 import PaginatedFormEditable from "./PaginatedFormEditable";
 
 const STORAGE_KEY = "camera_canvas_gallery";
 
 const CameraCanvas = () => {
+  const navigate = useNavigate();
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const hiddenCanvasRef = useRef(null);

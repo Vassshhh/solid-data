@@ -217,7 +217,7 @@ const Dashboard = () => {
         <div className={styles.dashboardGrid}>
           {user.role === "admin" && (
             <div className={styles.formSection}>
-              <h2>Tambah Officer Baru</h2>
+              <h2>Tambah Petugas Baru</h2>
               <form onSubmit={handleAddOfficer} className={styles.form}>
                 <label>
                   Username

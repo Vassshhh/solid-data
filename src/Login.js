@@ -49,7 +49,7 @@ const Login = () => {
     <div className={styles.loginContainer}>
       <div className={styles.loginBox}>
         <img src="/PSI.png" alt="Logo" className={styles.logo} />
-        <h1 className={styles.h1}>PSI Admin Login</h1>
+        <h1 className={styles.h1}>KTP Scanner login</h1>
         <p className={styles.subtitle}>
           Silakan masuk untuk melanjutkan ke dashboard
         </p>
