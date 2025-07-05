@@ -60,17 +60,17 @@ const FileListComponent = () => {
 
       const data = JSON.parse(text);
 
+      console.log(data);
       if (data.error) {
         alert(data.error);
         return;
       }
-
       // Validasi URL gambar (opsional)
       if (data.foto_url && !data.foto_url.match(/\.(jpg|jpeg|png)$/i)) {
         console.warn("URL foto bukan format gambar yang didukung.");
       }
 
-      setSelectedFile(data);
+      setSelectedFile(data[0]);
     } catch (error) {
       console.error("Gagal mengambil detail:", error.message || error);
       alert("Gagal mengambil detail. Pastikan data tersedia.");
@@ -152,9 +152,9 @@ const FileListComponent = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Foto KTP */}
-            {selectedFile.foto_url && (
+            {selectedFile.data && (
               <img
-                src={selectedFile.foto_url}
+                src={`data:image/jpeg;base64,${selectedFile.data}`}
                 alt={`Foto KTP - ${selectedFile.nik}`}
                 style={{
                   width: "100%",
