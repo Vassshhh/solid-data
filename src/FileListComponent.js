@@ -65,6 +65,11 @@ const FileListComponent = () => {
         return;
       }
 
+      // Validasi URL gambar (opsional)
+      if (data.foto_url && !data.foto_url.match(/\.(jpg|jpeg|png)$/i)) {
+        console.warn("URL foto bukan format gambar yang didukung.");
+      }
+
       setSelectedFile(data);
     } catch (error) {
       console.error("Gagal mengambil detail:", error.message || error);
@@ -90,7 +95,7 @@ const FileListComponent = () => {
   return (
     <div className={styles.fileListSection}>
       <div className={styles.fileListHeader}>
-        <h2 className={styles.fileListTitle}>📁 Daftar File</h2>
+        <h2 className={styles.fileListTitle}>📁 Daftar Anggota</h2>
         <span className={styles.fileCount}>{files.length} file tersedia</span>
       </div>
 
@@ -146,6 +151,22 @@ const FileListComponent = () => {
             className={styles.modalContent}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Foto KTP */}
+            {selectedFile.foto_url && (
+              <img
+                src={selectedFile.foto_url}
+                alt={`Foto KTP - ${selectedFile.nik}`}
+                style={{
+                  width: "100%",
+                  maxHeight: "300px",
+                  objectFit: "contain",
+                  marginBottom: "1rem",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                }}
+              />
+            )}
+
             <h3>🪪 Detail Data KTP</h3>
             <table className={styles.detailTable}>
               <tbody>

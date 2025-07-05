@@ -130,7 +130,7 @@ const Dashboard = () => {
       <div className={styles.dashboardHeader}>
         <div className={styles.logoAndTitle}>
           <img src="/PSI.png" alt="Bot Avatar" />
-          <h1 className={styles.h1}>PSI Dashboard</h1>
+          <h1 className={styles.h1}>Kawal PSI Dashboard</h1>
         </div>
 
         <div className={styles.dropdownContainer} ref={menuRef}>
@@ -248,7 +248,7 @@ const Dashboard = () => {
           )}
 
           <div className={styles.chartSection}>
-            <h2>Performa Pengiriman File</h2>
+            <h2>Grafik Pertumbuhan Anggota</h2>
             {officerPerformanceData.length > 0 ? (
               <div className={styles.chartPlaceholder}>
                 📊 Grafik performa akan ditampilkan di sini

@@ -263,6 +263,7 @@
   border-collapse: collapse;
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
+  text-align: left;
 }
 
 .detailTable tr:nth-child(even) {
@@ -469,8 +470,6 @@
 
   .closeButton {
     padding: 0.875rem 2rem;
-    width: auto;
-    margin-left: auto;
     display: block;
   }
 }
