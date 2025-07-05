@@ -95,9 +95,23 @@ const FileListComponent = () => {
   return (
     <div className={styles.fileListSection}>
       <div className={styles.fileListHeader}>
-        <h2 className={styles.fileListTitle}>📁 Daftar Anggota</h2>
-        <span className={styles.fileCount}>{files.length} file tersedia</span>
-      </div>
+  <h2 className={styles.fileListTitle}>📁 Daftar Anggota</h2>
+  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+    <button
+      onClick={() => {
+        window.open(
+          "https://bot.kediritechnopark.com/webhook/api/download",
+          "_blank"
+        );
+      }}
+      className={styles.downloadButton}
+    >
+      ⬇️ Unduh Excel
+    </button>
+    <span className={styles.fileCount}>{files.length} file tersedia</span>
+  </div>
+</div>
+
 
       {successMessage && (
         <div className={styles.successMessage}>

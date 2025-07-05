@@ -480,3 +480,19 @@
     margin: 3rem auto;
   }
 }
+
+.downloadButton {
+  background-color: #00adef;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.downloadButton:hover {
+  background-color: #008fc4;
+}
