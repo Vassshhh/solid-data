@@ -17,6 +17,8 @@ const fieldLabels = {
   validUntil: "Berlaku Hingga",
   issuedCity: "Kota Terbit",
   issuedDate: "Tanggal Terbit",
+  phoneNumber: "No. HP",
+  email: "Email",
 };
 
 function Modal({ isOpen, onClose, loading, fileTemp, onSave, onDelete }) {
@@ -88,7 +90,14 @@ function Modal({ isOpen, onClose, loading, fileTemp, onSave, onDelete }) {
     ["nik", "fullName", "birthPlace", "birthDate"],
     ["gender", "address", "neighborhoodCode", "village", "subDistrict"],
     ["religion", "maritalStatus", "occupation"],
-    ["nationality", "validUntil", "issuedCity", "issuedDate"],
+    [
+      "nationality",
+      "validUntil",
+      "issuedCity",
+      "issuedDate",
+      "phoneNumber",
+      "email",
+    ],
   ];
 
   // Filter field yang disable/hide

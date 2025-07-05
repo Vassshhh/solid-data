@@ -1,8 +1,9 @@
+// Dashboard.jsx
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./Dashboard.module.css";
 import { useNavigate } from "react-router-dom";
-// Pastikan Anda sudah menginstal Recharts: npm install recharts
-// import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'; // Contoh Recharts
+import FileListComponent from "./FileListComponent";
+// import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -51,10 +52,6 @@ const Dashboard = () => {
         }
 
         setUser(data[0].payload);
-
-        // Pastikan API Anda mengembalikan data ini, contoh:
-        // data[0].payload.stats = { today: 120, month: 2500, overall: 15000 };
-        // data[0].payload.officerPerformance = [{ name: "Budi", filesSent: 50 }, { name: "Ani", filesSent: 70 }];
 
         if (data[0].payload.stats) {
           setTotalFilesSentToday(data[0].payload.stats.today);
@@ -112,7 +109,6 @@ const Dashboard = () => {
       setUsername("");
       setPassword("");
       setErrorMessage("");
-      // Pertimbangkan untuk memuat ulang data performa jika penambahan officer baru mempengaruhi grafik
     } catch (error) {
       setErrorMessage(error.message || "Gagal menambahkan officer");
       setSuccessMessage("");
@@ -251,24 +247,9 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Chart Section - Visible to both Admin and Officer */}
           <div className={styles.chartSection}>
             <h2>Performa Pengiriman File</h2>
             {officerPerformanceData.length > 0 ? (
-              // Contoh implementasi Recharts:
-              /*
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={officerPerformanceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="name" interval={0} angle={-30} textAnchor="end" height={60} />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar
-                    dataKey="filesSent"
-                    fill={getComputedStyle(document.documentElement).getPropertyValue('--primary-blue')}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-              */
               <div className={styles.chartPlaceholder}>
                 📊 Grafik performa akan ditampilkan di sini
                 <br />
@@ -281,6 +262,9 @@ const Dashboard = () => {
             )}
           </div>
         </div>
+
+        {/* ✅ Tambahkan FileListComponent di sini */}
+        <FileListComponent />
       </div>
 
       <div className={styles.footer}>
