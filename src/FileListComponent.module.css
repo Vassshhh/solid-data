@@ -1,0 +1,498 @@
+/* FileListComponent.module.css - Updated to match Dashboard design */
+
+/* Use the same color palette as Dashboard */
+:root {
+  --primary-blue: #3b82f6;
+  --secondary-blue: #60a5fa;
+  --dark-blue: #1e40af;
+  --neutral-50: #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #d4d4d4;
+  --neutral-500: #737373;
+  --neutral-700: #404040;
+  --neutral-800: #262626;
+  --neutral-900: #171717;
+  --white: #ffffff;
+  --success-green: #10b981;
+  --warning-amber: #f59e0b;
+  --error-red: #ef4444;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-light: #ffffff;
+  --border-light: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* File List Section */
+.fileListSection {
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  margin: 2rem auto;
+  max-width: 1200px;
+  width: 100%;
+  overflow: hidden;
+  max-height: 600px;
+  height: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.fileListSection:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.fileListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.fileListTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
+}
+
+.fileCount {
+  font-size: 0.875rem;
+  color: #ffffff;
+  font-weight: 500;
+  background-color: #ef4444;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border-light);
+}
+
+.successMessage {
+  background-color: rgb(16 185 129 / 0.1);
+  color: var(--success-green);
+  border: 1px solid rgb(16 185 129 / 0.2);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.tableContainer {
+  flex: 1;
+  overflow: auto;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-light);
+  background-color: var(--white);
+  width: 100%;
+}
+
+.fileTable {
+  width: 100%;
+  min-width: 600px;
+  table-layout: auto;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background-color: var(--white);
+}
+
+.fileTable th {
+  background-color: #ef4444;
+  padding: 0.75rem;
+  text-align: center;
+  font-weight: 600;
+  color: #ffffff;
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fileTable td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.tableRow {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.tableRow:hover {
+  background-color: var(--neutral-50);
+}
+
+.nameColumn {
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 200px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-secondary);
+}
+
+.emptyStateTitle {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.emptyStateText {
+  font-size: 0.875rem;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--neutral-300);
+  border-top: 3px solid #ef4444;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Custom Scrollbar */
+.tableContainer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+  background: var(--neutral-100);
+  border-radius: 4px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+  background: #ef4444;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.tableContainer::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
+
+.tableContainer::-webkit-scrollbar-corner {
+  background: var(--neutral-100);
+}
+
+.tableContainer {
+  scrollbar-width: thin;
+  scrollbar-color: #ef4444 var(--neutral-100);
+}
+
+/* Modal Styles - Matching Dashboard Design */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: 1rem;
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
+}
+
+.modalContent h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.detailTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.detailTable tr:nth-child(even) {
+  background-color: var(--neutral-50);
+}
+
+.detailTable td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: top;
+}
+
+.detailTable td:first-child {
+  font-weight: 600;
+  color: var(--text-secondary);
+  width: 35%;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.detailTable td:last-child {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.closeButton {
+  background-color: #ef4444;
+  color: var(--text-light);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  width: 100%;
+  transition: all 0.2s ease;
+  letter-spacing: 0.025em;
+}
+
+.closeButton:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.closeButton:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .fileListSection {
+    padding: 1.5rem;
+    margin: 1rem;
+    max-width: 100%;
+    height: auto;
+    max-height: 70vh;
+  }
+
+  .fileListHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .fileListTitle {
+    font-size: 1.125rem;
+  }
+
+  /* Mobile: Show only NIK and Name columns */
+  .fileTable {
+    min-width: 100%;
+  }
+
+  .fileTable th:not(:nth-child(2)):not(:nth-child(3)),
+  .fileTable td:not(:nth-child(2)):not(:nth-child(3)) {
+    display: none;
+  }
+
+  .fileTable th,
+  .fileTable td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .fileTable th:nth-child(2) {
+    width: 40%;
+  }
+
+  .fileTable th:nth-child(3) {
+    width: 60%;
+  }
+
+  .nameColumn {
+    min-width: unset;
+  }
+
+  /* Modal responsive */
+  .modalContent {
+    padding: 1.5rem;
+    width: 95%;
+    max-height: 90vh;
+    border-radius: 0.75rem;
+  }
+
+  .modalContent h3 {
+    font-size: 1.125rem;
+  }
+
+  .detailTable {
+    font-size: 0.8125rem;
+  }
+
+  .detailTable td {
+    padding: 0.625rem 0.5rem;
+  }
+
+  .detailTable td:first-child {
+    width: 40%;
+  }
+}
+
+@media (max-width: 480px) {
+  .fileListSection {
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .fileListTitle {
+    font-size: 1rem;
+  }
+
+  .fileCount {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .fileTable th,
+  .fileTable td {
+    padding: 0.5rem 0.375rem;
+    font-size: 0.8125rem;
+  }
+
+  .modalContent {
+    padding: 1rem;
+    width: 98%;
+    border-radius: 0.5rem;
+  }
+
+  .modalContent h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .detailTable {
+    font-size: 0.75rem;
+  }
+
+  .detailTable td {
+    padding: 0.5rem 0.375rem;
+  }
+
+  .closeButton {
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Tablet and Desktop enhancements */
+@media (min-width: 769px) {
+  .fileListSection {
+    padding: 2.5rem;
+    margin: 2.5rem auto;
+  }
+
+  .fileListTitle {
+    font-size: 1.5rem;
+  }
+
+  .fileTable th,
+  .fileTable td {
+    padding: 1rem 0.75rem;
+  }
+
+  .modalContent {
+    padding: 2.5rem;
+    border-radius: 1rem;
+  }
+
+  .modalContent h3 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .detailTable {
+    font-size: 0.875rem;
+  }
+
+  .detailTable td {
+    padding: 1rem 0.75rem;
+  }
+
+  .closeButton {
+    padding: 0.875rem 2rem;
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fileListSection {
+    padding: 3rem;
+    margin: 3rem auto;
+  }
+}
+
+.downloadButton {
+  background-color: #00adef;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.downloadButton:hover {
+  background-color: #008fc4;
+}

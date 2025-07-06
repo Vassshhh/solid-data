@@ -1,8 +1,9 @@
+// Dashboard.jsx
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./Dashboard.module.css";
 import { useNavigate } from "react-router-dom";
-// Pastikan Anda sudah menginstal Recharts: npm install recharts
-// import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'; // Contoh Recharts
+import FileListComponent from "./FileListComponent";
+// import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -52,10 +53,6 @@ const Dashboard = () => {
 
         setUser(data[0].payload);
 
-        // Pastikan API Anda mengembalikan data ini, contoh:
-        // data[0].payload.stats = { today: 120, month: 2500, overall: 15000 };
-        // data[0].payload.officerPerformance = [{ name: "Budi", filesSent: 50 }, { name: "Ani", filesSent: 70 }];
-
         if (data[0].payload.stats) {
           setTotalFilesSentToday(data[0].payload.stats.today);
           setTotalFilesSentMonth(data[0].payload.stats.month);
@@ -78,7 +75,6 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.removeItem("role");
     window.location.reload();
   };
 
@@ -113,7 +109,6 @@ const Dashboard = () => {
       setUsername("");
       setPassword("");
       setErrorMessage("");
-      // Pertimbangkan untuk memuat ulang data performa jika penambahan officer baru mempengaruhi grafik
     } catch (error) {
       setErrorMessage(error.message || "Gagal menambahkan officer");
       setSuccessMessage("");
@@ -134,8 +129,8 @@ const Dashboard = () => {
     <div className={styles.dashboardContainer}>
       <div className={styles.dashboardHeader}>
         <div className={styles.logoAndTitle}>
-          <img src="/dermalounge.jpg" alt="Bot Avatar" />
-          <h1 className={styles.h1}>PSI Dashboard</h1>
+          <img src="/PSI.png" alt="Bot Avatar" />
+          <h1 className={styles.h1}>Kawal PSI Dashboard</h1>
         </div>
 
         <div className={styles.dropdownContainer} ref={menuRef}>
@@ -145,10 +140,23 @@ const Dashboard = () => {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={styles.dropdownToggle}
-            aria-expanded={isMenuOpen ? "true" : "false"} /* Aksesibilitas */
-            aria-haspopup="true" /* Aksesibilitas */
+            aria-expanded={isMenuOpen ? "true" : "false"}
+            aria-haspopup="true"
           >
-            ☰
+            <svg
+              width="15"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
           </button>
           {isMenuOpen && (
             <div className={styles.dropdownMenu}>
@@ -156,16 +164,25 @@ const Dashboard = () => {
                 onClick={() => {
                   navigate("/profile");
                   setIsMenuOpen(false);
-                }} /* Tutup menu setelah klik */
+                }}
                 className={styles.dropdownItem}
               >
                 Profile
               </button>
               <button
                 onClick={() => {
+                  navigate("/scan");
+                  setIsMenuOpen(false);
+                }}
+                className={styles.dropdownItem}
+              >
+                Scan
+              </button>
+              <button
+                onClick={() => {
                   handleLogout();
                   setIsMenuOpen(false);
-                }} /* Tutup menu setelah klik */
+                }}
                 className={styles.dropdownItem}
               >
                 Logout
@@ -179,45 +196,47 @@ const Dashboard = () => {
         {/* Summary Cards */}
         <div className={styles.summaryCardsContainer}>
           <div className={styles.summaryCard}>
-            <h3>Total Hari Ini</h3>
-            <p>{totalFilesSentToday}</p>
+            <h3>Hari Ini</h3>
+            <p>{totalFilesSentToday.toLocaleString()}</p>
           </div>
           <div className={styles.summaryCard}>
-            <h3>Total Bulan Ini</h3>
-            <p>{totalFilesSentMonth}</p>
+            <h3>Bulan Ini</h3>
+            <p>{totalFilesSentMonth.toLocaleString()}</p>
           </div>
           <div className={styles.summaryCard}>
             <h3>Total Keseluruhan</h3>
-            <p>{totalFilesSentOverall}</p>
+            <p>{totalFilesSentOverall.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Grid for Form (Admin) and Chart (Admin & Officer) */}
         <div className={styles.dashboardGrid}>
-          {user.role === "admin" /* Render form hanya jika admin */ && (
+          {user.role === "admin" && (
             <div className={styles.formSection}>
-              <h2>Tambah Officer Baru</h2>
+              <h2>Tambah Petugas Baru</h2>
               <form onSubmit={handleAddOfficer} className={styles.form}>
                 <label>
-                  Username:
+                  Username
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Masukkan username"
                     required
                   />
                 </label>
                 <label>
-                  Password:
+                  Password
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan password"
                     required
                   />
                 </label>
                 <button type="submit" className={styles.submitButton}>
-                  Add
+                  Tambah Officer
                 </button>
               </form>
 
@@ -228,38 +247,29 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Chart Section - Visible to both Admin and Officer */}
           <div className={styles.chartSection}>
-            <h2>Performa Pengiriman File Petugas</h2>
+            <h2>Grafik Pertumbuhan Anggota</h2>
             {officerPerformanceData.length > 0 ? (
-              // Contoh implementasi Recharts:
-              /*
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={officerPerformanceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="name" interval={0} angle={-30} textAnchor="end" height={60} />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar
-                    dataKey="filesSent"
-                    fill={getComputedStyle(document.documentElement).getPropertyValue('--primary-red')}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-              */
               <div className={styles.chartPlaceholder}>
-                Grafik performa petugas akan ditampilkan di sini. (Integrasikan
-                library grafik seperti Recharts/Chart.js)
+                📊 Grafik performa akan ditampilkan di sini
+                <br />
+                <small>Integrasikan dengan Recharts atau Chart.js</small>
               </div>
             ) : (
-              <p className={styles.warning}>
-                Tidak ada data performa petugas untuk ditampilkan.
-              </p>
+              <div className={styles.warning}>
+                📋 Belum ada data performa untuk ditampilkan
+              </div>
             )}
           </div>
         </div>
+
+        {/* ✅ Tambahkan FileListComponent di sini */}
+        <FileListComponent />
       </div>
 
-      <div className={styles.footer}>&copy; 2025 Kediri Technopark</div>
+      <div className={styles.footer}>
+        © 2025 Kediri Technopark • Dashboard PSI
+      </div>
     </div>
   );
 };
