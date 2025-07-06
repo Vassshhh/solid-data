@@ -3,7 +3,14 @@ import React, { useState, useRef, useEffect } from "react";
 import styles from "./Dashboard.module.css";
 import { useNavigate } from "react-router-dom";
 import FileListComponent from "./FileListComponent";
-// import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -52,16 +59,6 @@ const Dashboard = () => {
         }
 
         setUser(data[0].payload);
-
-        if (data[0].payload.stats) {
-          setTotalFilesSentToday(data[0].payload.stats.today);
-          setTotalFilesSentMonth(data[0].payload.stats.month);
-          setTotalFilesSentOverall(data[0].payload.stats.overall);
-        }
-
-        if (data[0].payload.officerPerformance) {
-          setOfficerPerformanceData(data[0].payload.officerPerformance);
-        }
       } catch (error) {
         console.error("Token tidak valid:", error.message);
         localStorage.removeItem("token");
@@ -250,11 +247,14 @@ const Dashboard = () => {
           <div className={styles.chartSection}>
             <h2>Grafik Pertumbuhan Anggota</h2>
             {officerPerformanceData.length > 0 ? (
-              <div className={styles.chartPlaceholder}>
-                📊 Grafik performa akan ditampilkan di sini
-                <br />
-                <small>Integrasikan dengan Recharts atau Chart.js</small>
-              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={officerPerformanceData}>
+                  <XAxis dataKey="month" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#00adef" />
+                </BarChart>
+              </ResponsiveContainer>
             ) : (
               <div className={styles.warning}>
                 📋 Belum ada data performa untuk ditampilkan
@@ -264,7 +264,12 @@ const Dashboard = () => {
         </div>
 
         {/* ✅ Tambahkan FileListComponent di sini */}
-        <FileListComponent />
+        <FileListComponent
+          setTotalFilesSentToday={setTotalFilesSentToday}
+          setTotalFilesSentMonth={setTotalFilesSentMonth}
+          setTotalFilesSentOverall={setTotalFilesSentOverall}
+          setOfficerPerformanceData={setOfficerPerformanceData}
+        />
       </div>
 
       <div className={styles.footer}>

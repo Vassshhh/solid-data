@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import styles from "./FileListComponent.module.css";
+import * as XLSX from "xlsx";
 
-const FileListComponent = () => {
+const FileListComponent = ({
+  setTotalFilesSentToday,
+  setTotalFilesSentMonth,
+  setTotalFilesSentOverall,
+  setOfficerPerformanceData,
+}) => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -9,9 +15,18 @@ const FileListComponent = () => {
 
   useEffect(() => {
     const fetchFiles = async () => {
+      const token = localStorage.getItem("token");
+
       try {
         const response = await fetch(
-          "https://bot.kediritechnopark.com/webhook/api/files"
+          "https://bot.kediritechnopark.com/webhook/files",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         if (!response.ok) {
@@ -19,6 +34,7 @@ const FileListComponent = () => {
         }
 
         const text = await response.text();
+
         if (!text) {
           throw new Error("Server membalas kosong.");
         }
@@ -29,10 +45,78 @@ const FileListComponent = () => {
           throw new Error("Format respons tidak valid.");
         }
 
-        setFiles(data.data);
-        setLoading(false);
+        const fileData = data.data;
+
+        // 1. Set ke state
+        setFiles(fileData);
+
+        // 2. Hitung total file hari ini
+        const today = new Date().toISOString().slice(0, 10);
+        const totalToday = fileData.filter((f) =>
+          f.created_at.startsWith(today)
+        ).length;
+        setTotalFilesSentToday(totalToday);
+
+        // 3. Hitung total bulan ini
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        const totalThisMonth = fileData.filter((f) => {
+          const d = new Date(f.created_at);
+          return (
+            d.getMonth() === currentMonth && d.getFullYear() === currentYear
+          );
+        }).length;
+        setTotalFilesSentMonth(totalThisMonth);
+
+        // 4. Total keseluruhan
+        setTotalFilesSentOverall(fileData.length);
+
+        // 5. Grafik performa per bulan (dinamis)
+        const dateObjects = fileData.map((item) => new Date(item.created_at));
+        if (dateObjects.length > 0) {
+          const minDate = new Date(Math.min(...dateObjects));
+          const maxDate = new Date(Math.max(...dateObjects));
+
+          const monthlyDataMap = {};
+          let current = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+          const end = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+
+          while (current <= end) {
+            const monthKey = `${current.getFullYear()}-${String(
+              current.getMonth() + 1
+            ).padStart(2, "0")}`;
+            monthlyDataMap[monthKey] = 0;
+            current.setMonth(current.getMonth() + 1);
+          }
+
+          fileData.forEach((item) => {
+            const d = new Date(item.created_at);
+            const monthKey = `${d.getFullYear()}-${String(
+              d.getMonth() + 1
+            ).padStart(2, "0")}`;
+            if (monthlyDataMap[monthKey] !== undefined) {
+              monthlyDataMap[monthKey]++;
+            }
+          });
+
+          const performanceArray = Object.entries(monthlyDataMap).map(
+            ([month, count]) => {
+              const [year, monthNum] = month.split("-");
+              const dateObj = new Date(`${month}-01`);
+              const label = new Intl.DateTimeFormat("id-ID", {
+                month: "long",
+                year: "numeric",
+              }).format(dateObj); // hasil: "Juli 2025"
+              return { month: label, count };
+            }
+          );
+
+          setOfficerPerformanceData(performanceArray);
+        }
       } catch (error) {
         console.error("Gagal mengambil data dari server:", error.message);
+      } finally {
         setLoading(false);
       }
     };
@@ -42,11 +126,24 @@ const FileListComponent = () => {
 
   const formatPhoneNumber = (phone) =>
     phone?.replace(/(\d{4})(\d{4})(\d{4})/, "$1-$2-$3");
-
   const handleRowClick = async (file) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Token tidak ditemukan. Silakan login kembali.");
+      return;
+    }
+
     try {
       const response = await fetch(
-        `https://bot.kediritechnopark.com/webhook/8a68d17e-c987-468c-853a-1c7d8104b5ba/api/files/${file.nik}`
+        `https://bot.kediritechnopark.com/webhook/6915ea36-e1f4-49ad-a7f1-a27ce0bf2279/ktp/${file.nik}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: token, // atau `Bearer ${token}` jika diperlukan
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       if (!response.ok) {
@@ -60,17 +157,27 @@ const FileListComponent = () => {
 
       const data = JSON.parse(text);
 
-      console.log(data);
       if (data.error) {
         alert(data.error);
         return;
       }
-      // Validasi URL gambar (opsional)
-      if (data.foto_url && !data.foto_url.match(/\.(jpg|jpeg|png)$/i)) {
-        console.warn("URL foto bukan format gambar yang didukung.");
+
+      const item = data[0];
+
+      if (!item) {
+        alert("Data tidak ditemukan.");
+        return;
       }
 
-      setSelectedFile(data[0]);
+      // Validasi jika ada image URL
+      if (item.foto_url && !item.foto_url.match(/\.(jpg|jpeg|png|webp)$/i)) {
+        console.warn(
+          "URL foto bukan format gambar yang didukung:",
+          item.foto_url
+        );
+      }
+
+      setSelectedFile(item); // tampilkan di modal misalnya
     } catch (error) {
       console.error("Gagal mengambil detail:", error.message || error);
       alert("Gagal mengambil detail. Pastikan data tersedia.");
@@ -79,6 +186,65 @@ const FileListComponent = () => {
 
   const closeModal = () => {
     setSelectedFile(null);
+  };
+
+  const exportToExcel = (data) => {
+    const domain = window.location.origin;
+
+    // Step 1: Transform data
+    const modifiedData = data.map((item) => ({
+      ID: item.id,
+      NIK: item.nik,
+      Nama: item.nama_lengkap,
+      NoHP: item.no_hp,
+      Email: item.email,
+      Tanggal_Lahir: new Date(item.tanggal_lahir).toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }),
+      CreatedAt: new Date(item.created_at).toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      ImageURL: `${domain}/${item.nik}`, // Will become a hyperlink
+    }));
+
+    // Step 2: Create worksheet from data
+    const worksheet = XLSX.utils.json_to_sheet(modifiedData);
+
+    // Step 3: Add hyperlinks to ImageURL column
+    modifiedData.forEach((item, index) => {
+      const cellAddress = `G${index + 2}`; // G column, +2 because of header
+      if (worksheet[cellAddress]) {
+        worksheet[cellAddress].l = {
+          Target: item.ImageURL,
+          Tooltip: "View Image",
+        };
+      }
+    });
+
+    // Step 4: Optional - add column widths
+    worksheet["!cols"] = [
+      { wch: 5 }, // ID
+      { wch: 15 }, // NIK
+      { wch: 25 }, // Nama
+      { wch: 15 }, // NoHP
+      { wch: 30 }, // Email
+      { wch: 25 }, // CreatedAt
+      { wch: 40 }, // ImageURL
+    ];
+
+    // Step 5: Optional - enable filter and freeze header
+    worksheet["!autofilter"] = { ref: "A1:G1" };
+
+    // Step 6: Create and export workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+    XLSX.writeFile(workbook, "data-export.xlsx");
   };
 
   if (loading) {
@@ -95,23 +261,19 @@ const FileListComponent = () => {
   return (
     <div className={styles.fileListSection}>
       <div className={styles.fileListHeader}>
-  <h2 className={styles.fileListTitle}>📁 Daftar Anggota</h2>
-  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-    <button
-      onClick={() => {
-        window.open(
-          "https://bot.kediritechnopark.com/webhook/api/download",
-          "_blank"
-        );
-      }}
-      className={styles.downloadButton}
-    >
-      ⬇️ Unduh Excel
-    </button>
-    <span className={styles.fileCount}>{files.length} file tersedia</span>
-  </div>
-</div>
-
+        <h2 className={styles.fileListTitle}>📁 Daftar Anggota</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <button
+            onClick={() => {
+              exportToExcel(files);
+            }}
+            className={styles.downloadButton}
+          >
+            ⬇️ Unduh Excel
+          </button>
+          <span className={styles.fileCount}>{files.length} file tersedia</span>
+        </div>
+      </div>
 
       {successMessage && (
         <div className={styles.successMessage}>

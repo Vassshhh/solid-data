@@ -1,5 +1,6 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ShowImage from "./ShowImage";
 
 import Dashboard from "./Dashboard";
 import Login from "./Login";
@@ -42,6 +43,7 @@ function App() {
           element={<ProtectedRoute element={<Dashboard />} />}
         />
         <Route path="/" element={<HomeRedirect />} />
+        <Route path="/:nik" element={<ShowImage />} />
       </Routes>
     </div>
   );
