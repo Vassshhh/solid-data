@@ -187,61 +187,57 @@ const FileListComponent = ({
   const closeModal = () => {
     setSelectedFile(null);
   };
-
   const exportToExcel = (data) => {
     const domain = window.location.origin;
 
-    // Step 1: Transform data
     const modifiedData = data.map((item) => ({
       ID: item.id,
+      Petugas_ID: item.petugas_id,
+      Petugas: item.username,
       NIK: item.nik,
-      Nama: item.nama_lengkap,
-      NoHP: item.no_hp,
+      Nama_Lengkap: item.nama_lengkap,
+      Tempat_Lahir: item.tempat_lahir,
+      Tanggal_Lahir: new Date(item.tanggal_lahir),
+      Jenis_Kelamin: item.jenis_kelamin,
+      Alamat: item.alamat,
+      RT_RW: item.rt_rw,
+      Kel_Desa: item.kel_desa,
+      Kecamatan: item.kecamatan,
+      Agama: item.agama,
+      Status_Perkawinan: item.status_perkawinan,
+      Pekerjaan: item.pekerjaan,
+      Kewarganegaraan: item.kewarganegaraan,
+      No_HP: item.no_hp,
       Email: item.email,
-      Tanggal_Lahir: new Date(item.tanggal_lahir).toLocaleString("id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      }),
-      CreatedAt: new Date(item.created_at).toLocaleString("id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      ImageURL: `${domain}/${item.nik}`, // Will become a hyperlink
+      Berlaku_Hingga: new Date(item.berlaku_hingga),
+      Pembuatan: new Date(item.pembuatan),
+      Kota_Pembuatan: item.kota_pembuatan,
+      Created_At: new Date(item.created_at),
+      ImageURL: `${domain}/${item.nik}`,
     }));
 
-    // Step 2: Create worksheet from data
     const worksheet = XLSX.utils.json_to_sheet(modifiedData);
 
-    // Step 3: Add hyperlinks to ImageURL column
+    // Add hyperlink to ImageURL column (last column)
     modifiedData.forEach((item, index) => {
-      const cellAddress = `G${index + 2}`; // G column, +2 because of header
+      const cellAddress = `W${index + 2}`; // Column W (ImageURL), starts at row 2
       if (worksheet[cellAddress]) {
         worksheet[cellAddress].l = {
           Target: item.ImageURL,
-          Tooltip: "View Image",
+          Tooltip: "Lihat Gambar",
         };
       }
     });
 
-    // Step 4: Optional - add column widths
-    worksheet["!cols"] = [
-      { wch: 5 }, // ID
-      { wch: 15 }, // NIK
-      { wch: 25 }, // Nama
-      { wch: 15 }, // NoHP
-      { wch: 30 }, // Email
-      { wch: 25 }, // CreatedAt
-      { wch: 40 }, // ImageURL
-    ];
+    // Optional: Auto column widths (you can fine-tune)
+    worksheet["!cols"] = new Array(Object.keys(modifiedData[0]).length).fill({
+      wch: 20,
+    });
 
-    // Step 5: Optional - enable filter and freeze header
-    worksheet["!autofilter"] = { ref: "A1:G1" };
+    // Add autofilter
+    worksheet["!autofilter"] = { ref: `A1:W1` }; // Covers all columns (A to W)
 
-    // Step 6: Create and export workbook
+    // Export
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
     XLSX.writeFile(workbook, "data-export.xlsx");
