@@ -442,3 +442,159 @@ body {
     grid-column: 1 / -1;
   }
 }
+
+/* CSS untuk styling daftar petugas */
+
+.officerListContainer {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.officerList {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border-radius: 6px;
+  background: white;
+  border: 1px solid #e9ecef;
+}
+
+.officerItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.officerItem:last-child {
+  border-bottom: none;
+}
+
+.officerItem:hover {
+  background-color: #f8f9fa;
+}
+
+.officerInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.officerIcon {
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.officerDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.officerName {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.officerRole {
+  font-size: 12px;
+  color: #6c757d;
+  font-style: italic;
+  text-transform: capitalize;
+}
+
+.deleteButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  opacity: 0.7;
+}
+
+.deleteButton:hover {
+  background-color: #fee;
+  opacity: 1;
+}
+
+.deleteButton:focus {
+  outline: 2px solid #dc3545;
+  outline-offset: 2px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.emptyState span {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.separator {
+  border: none;
+  border-top: 1px solid #dee2e6;
+  margin: 24px 0;
+}
+
+/* Custom scrollbar untuk daftar petugas */
+.officerList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.officerList::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.officerList::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.officerList::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .officerItem {
+    padding: 10px 12px;
+  }
+
+  .officerInfo {
+    gap: 8px;
+  }
+
+  .officerName {
+    font-size: 13px;
+  }
+
+  .officerRole {
+    font-size: 11px;
+  }
+}

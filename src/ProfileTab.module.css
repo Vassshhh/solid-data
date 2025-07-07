@@ -50,7 +50,6 @@ body {
   flex-direction: column;
 }
 
-/* Header */
 .dashboardHeader {
   background-color: var(--white);
   color: var(--text-primary);

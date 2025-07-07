@@ -70,27 +70,28 @@ const Dashboard = () => {
     verifyTokenAndFetchData();
   }, []);
 
+  // Memisahkan fungsi fetchOfficers agar dapat dipanggil ulang
+  const fetchOfficers = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        "https://bot.kediritechnopark.com/webhook/list-user/psi",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      setOfficers(data);
+    } catch (error) {
+      console.error("Gagal memuat daftar officer:", error.message);
+    }
+  };
+
   useEffect(() => {
-    const fetchOfficers = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const response = await fetch(
-          "https://bot.kediritechnopark.com/webhook/list-user/psi",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-        setOfficers(data);
-      } catch (error) {
-        console.error("Gagal memuat daftar officer:", error.message);
-      }
-    };
-
     if (user.role == "admin") {
       fetchOfficers();
     }
@@ -133,6 +134,9 @@ const Dashboard = () => {
       setUsername("");
       setPassword("");
       setErrorMessage("");
+
+      // Refresh daftar officer setelah berhasil menambahkan
+      await fetchOfficers();
     } catch (error) {
       setErrorMessage(error.message || "Gagal menambahkan officer");
       setSuccessMessage("");
@@ -148,6 +152,7 @@ const Dashboard = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   const handleDeleteOfficer = async (id) => {
     const confirmDelete = window.confirm(
       "Apakah Anda yakin ingin menghapus petugas ini?"
@@ -268,21 +273,39 @@ const Dashboard = () => {
           {user.role === "admin" && (
             <div className={styles.formSection}>
               <h2>Daftar Petugas</h2>
-              <ul className={styles.officerList}>
-                {officers.map((officer) => (
-                  <li key={officer.id} className={styles.officerItem}>
-                    👤 <strong>{officer.username}</strong> —{" "}
-                    <em>{officer.role}</em>
-                    <button
-                      onClick={() => handleDeleteOfficer(officer.id)}
-                      className={styles.deleteButton}
-                      title="Hapus Petugas"
-                    >
-                      ❌
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <div className={styles.officerListContainer}>
+                <div className={styles.officerList}>
+                  {officers.length > 0 ? (
+                    officers.map((officer) => (
+                      <div key={officer.id} className={styles.officerItem}>
+                        <div className={styles.officerInfo}>
+                          <span className={styles.officerIcon}>👤</span>
+                          <div className={styles.officerDetails}>
+                            <strong className={styles.officerName}>
+                              {officer.username}
+                            </strong>
+                            <span className={styles.officerRole}>
+                              {officer.role}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteOfficer(officer.id)}
+                          className={styles.deleteButton}
+                          title="Hapus Petugas"
+                        >
+                          ❌
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyState}>
+                      <span>📋</span>
+                      <p>Belum ada petugas terdaftar</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <hr className={styles.separator} />
               <h2>Tambah Petugas Baru</h2>
