@@ -508,6 +508,7 @@ const CameraCanvas = () => {
             border: "none",
             cursor: "pointer",
           }}
+          onClick={() => navigate("/dashboard")}
         >
           &lt;
         </button>

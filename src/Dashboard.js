@@ -1,4 +1,3 @@
-// Dashboard.jsx
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./Dashboard.module.css";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +24,7 @@ const Dashboard = () => {
   const [totalFilesSentMonth, setTotalFilesSentMonth] = useState(0);
   const [totalFilesSentOverall, setTotalFilesSentOverall] = useState(0);
   const [officerPerformanceData, setOfficerPerformanceData] = useState([]);
+  const [officers, setOfficers] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -55,19 +55,46 @@ const Dashboard = () => {
         const data = await response.json();
 
         if (!response.ok || !data[0].payload.username) {
-          throw new Error("Unauthorized");
+          // throw new Error("Unauthorized");
+          console.log(response);
         }
 
         setUser(data[0].payload);
       } catch (error) {
         console.error("Token tidak valid:", error.message);
-        localStorage.removeItem("token");
-        window.location.href = "/login";
+        // localStorage.removeItem("token");
+        // window.location.href = "/login";
       }
     };
 
     verifyTokenAndFetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchOfficers = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch(
+          "https://bot.kediritechnopark.com/webhook/list-user/psi",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        setOfficers(data);
+      } catch (error) {
+        console.error("Gagal memuat daftar officer:", error.message);
+      }
+    };
+
+    if (user.role == "admin") {
+      fetchOfficers();
+    }
+  }, [user.role]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -121,6 +148,41 @@ const Dashboard = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  const handleDeleteOfficer = async (id) => {
+    const confirmDelete = window.confirm(
+      "Apakah Anda yakin ingin menghapus petugas ini?"
+    );
+    if (!confirmDelete) return;
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(
+        `https://bot.kediritechnopark.com/webhook/psi/delete-officer`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || data.success === false) {
+        throw new Error(data.message || "Gagal menghapus officer");
+      }
+
+      // Hapus dari daftar tampilan
+      setOfficers((prev) => prev.filter((officer) => officer.id !== id));
+    } catch (error) {
+      alert("Gagal menghapus petugas: " + error.message);
+    }
+  };
 
   return (
     <div className={styles.dashboardContainer}>
@@ -187,7 +249,6 @@ const Dashboard = () => {
       </div>
 
       <div className={styles.mainContent}>
-        {/* Summary Cards */}
         <div className={styles.summaryCardsContainer}>
           <div className={styles.summaryCard}>
             <h3>Hari Ini</h3>
@@ -203,10 +264,27 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Grid for Form (Admin) and Chart (Admin & Officer) */}
         <div className={styles.dashboardGrid}>
           {user.role === "admin" && (
             <div className={styles.formSection}>
+              <h2>Daftar Petugas</h2>
+              <ul className={styles.officerList}>
+                {officers.map((officer) => (
+                  <li key={officer.id} className={styles.officerItem}>
+                    👤 <strong>{officer.username}</strong> —{" "}
+                    <em>{officer.role}</em>
+                    <button
+                      onClick={() => handleDeleteOfficer(officer.id)}
+                      className={styles.deleteButton}
+                      title="Hapus Petugas"
+                    >
+                      ❌
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              <hr className={styles.separator} />
               <h2>Tambah Petugas Baru</h2>
               <form onSubmit={handleAddOfficer} className={styles.form}>
                 <label>
@@ -260,7 +338,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* ✅ Tambahkan FileListComponent di sini */}
         <FileListComponent
           setTotalFilesSentToday={setTotalFilesSentToday}
           setTotalFilesSentMonth={setTotalFilesSentMonth}
