@@ -54,16 +54,16 @@ const Dashboard = () => {
 
         const data = await response.json();
 
-        if (!response.ok || !data[0].payload.username) {
-          // throw new Error("Unauthorized");
+        if (!response.ok || !data[0].username) {
+          throw new Error("Unauthorized");
           console.log(response);
         }
 
-        setUser(data[0].payload);
+        setUser(data[0]);
       } catch (error) {
         console.error("Token tidak valid:", error.message);
-        // localStorage.removeItem("token");
-        // window.location.href = "/login";
+        localStorage.removeItem("token");
+        window.location.href = "/login";
       }
     };
 
