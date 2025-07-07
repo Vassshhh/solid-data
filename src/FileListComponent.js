@@ -267,7 +267,7 @@ const FileListComponent = ({
           >
             ⬇️ Unduh Excel
           </button>
-          <span className={styles.fileCount}>{files.length} file tersedia</span>
+          <span className={styles.fileCount}>{files.length} anggota</span>
         </div>
       </div>
 
@@ -339,7 +339,7 @@ const FileListComponent = ({
               />
             )}
 
-            <h3>🪪 Detail Data KTP</h3>
+            <h3>🪪 Detail Data Anggota</h3>
             <table className={styles.detailTable}>
               <tbody>
                 <tr>

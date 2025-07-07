@@ -5,6 +5,7 @@ import ShowImage from "./ShowImage";
 import Dashboard from "./Dashboard";
 import Login from "./Login";
 import CameraKtp from "./KTPScanner";
+import Profile from "./ProfileTab";
 
 // Komponen untuk melindungi route dengan token
 const ProtectedRoute = ({ element }) => {
@@ -41,6 +42,10 @@ function App() {
         <Route
           path="/dashboard"
           element={<ProtectedRoute element={<Dashboard />} />}
+        />
+        <Route
+          path="/profile"
+          element={<ProtectedRoute element={<Profile />} />}
         />
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/:nik" element={<ShowImage />} />

@@ -131,9 +131,6 @@ const Dashboard = () => {
         </div>
 
         <div className={styles.dropdownContainer} ref={menuRef}>
-          <span className={styles.userDisplayName}>
-            {user.username || "Guest"}
-          </span>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={styles.dropdownToggle}
