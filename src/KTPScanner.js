@@ -1,102 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
-// import PaginatedFormEditable from "./PaginatedFormEditable"; // Assuming this is provided externally or defined above
+import { useNavigate } from "react-router-dom";
+import PaginatedFormEditable from "./PaginatedFormEditable"; // Import PaginatedFormEditable
+import Modal from "./Modal"; // Import Modal
+
 const STORAGE_KEY = "camera_canvas_gallery";
-// Placeholder for PaginatedFormEditable if not provided by user.
-// In a real scenario, this would be a separate file.
-const PaginatedFormEditable = ({ data, handleSimpan }) => {
-  const [editableData, setEditableData] = useState(data);
 
-  useEffect(() => {
-    setEditableData(data);
-  }, [data]);
-
-  const handleChange = (key, value) => {
-    setEditableData((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
-  if (!editableData) return null;
-
-  return (
-    <div style={paginatedFormEditableStyles.container}>
-      <h3 style={paginatedFormEditableStyles.title}>Form Data</h3>
-      {Object.entries(editableData).map(([key, value]) => (
-        <div key={key} style={paginatedFormEditableStyles.fieldGroup}>
-          <label style={paginatedFormEditableStyles.label}>{key}:</label>
-          <input
-            type="text"
-            value={value || ""}
-            onChange={(e) => handleChange(key, e.target.value)}
-            style={paginatedFormEditableStyles.input}
-          />
-        </div>
-      ))}
-      <button
-        onClick={() => handleSimpan(editableData)}
-        style={paginatedFormEditableStyles.saveButton}
-      >
-        Simpan Data
-      </button>
-    </div>
-  );
-};
-
-const paginatedFormEditableStyles = {
-  container: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: "12px",
-    padding: "20px",
-    marginTop: "20px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
-  },
-  title: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    marginBottom: "15px",
-    color: "#333",
-  },
-  fieldGroup: {
-    marginBottom: "15px",
-  },
-  label: {
-    display: "block",
-    marginBottom: "5px",
-    fontWeight: "600",
-    color: "#555",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "8px",
-    fontSize: "16px",
-    boxSizing: "border-box",
-  },
-  saveButton: {
-    backgroundColor: "#429241",
-    color: "white",
-    padding: "12px 20px",
-    borderRadius: "8px",
-    border: "none",
-    fontSize: "16px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    marginTop: "15px",
-    width: "100%",
-  },
-};
+// Placeholder for PaginatedFormEditable - Removed as it's now imported.
+// The actual component definition should be in PaginatedFormEditable.js
 
 // Custom Modal Component for New Document Type
 const NewDocumentModal = ({ isOpen, onClose, onSubmit }) => {
   const [documentName, setDocumentName] = useState("");
   const [formFields, setFormFields] = useState([
     { id: crypto.randomUUID(), label: "" },
-  ]); // State for dynamic form fields
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
       setDocumentName("");
@@ -124,18 +43,14 @@ const NewDocumentModal = ({ isOpen, onClose, onSubmit }) => {
     e.preventDefault();
     if (!documentName.trim()) return;
 
-    // Ensure all fields have labels
     const hasEmptyField = formFields.some((field) => !field.label.trim());
     if (hasEmptyField) {
-      // Use a custom message box instead of alert
-      // For this example, I'll just log to console, but in a real app, a modal would appear.
       console.log("Please fill all field labels.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Pass both documentName and formFields to the onSubmit handler
       await onSubmit(
         documentName.trim(),
         formFields.map((field) => ({ label: field.label.trim() }))
@@ -247,24 +162,28 @@ const NewDocumentModal = ({ isOpen, onClose, onSubmit }) => {
 const CameraCanvas = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
-  // const useNavigate = () => { /* Placeholder if react-router-dom is not available */ return () => {}; }; // Uncomment if react-router-dom is fully set up
-  // const navigate = useNavigate(); // Uncomment if react-router-dom is fully set up
+  const navigate = useNavigate();
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const hiddenCanvasRef = useRef(null);
   const [capturedImage, setCapturedImage] = useState(null);
-  const [galleryImages, setGalleryImages] = useState([]); // This state is not used in the current display logic
+  const [galleryImages, setGalleryImages] = useState([]);
   const [fileTemp, setFileTemp] = useState(null);
   const [isFreeze, setIsFreeze] = useState(false);
   const freezeFrameRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
-  const [KTPdetected, setKTPdetected] = useState(false); // Not directly used for KTP anymore, but kept for consistency
+  const [KTPdetected, setKTPdetected] = useState(false);
   const [showDocumentSelection, setShowDocumentSelection] = useState(true);
   const [selectedDocumentType, setSelectedDocumentType] = useState(null);
   const [cameraInitialized, setCameraInitialized] = useState(false);
   const [showNewDocumentModal, setShowNewDocumentModal] = useState(false);
+
+  // NEW STATES - Added from code 2
+  const [isScanned, setIsScanned] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false); // Added from code 2
 
   const handleDocumentTypeSelection = (type) => {
     if (type === "new") {
@@ -282,13 +201,10 @@ const CameraCanvas = () => {
     fileInputRef.current?.click();
   };
 
-  // Removed loadImageToCanvas as it's not directly used in the current flow.
-
   const handleNewDocumentSubmit = async (documentName, fields) => {
     try {
-      const token = localStorage.getItem("token"); // Ensure token is available
+      const token = localStorage.getItem("token");
 
-      // Kirim ke webhook
       const response = await fetch(
         "https://bot.kediritechnopark.com/webhook/solid-data/newtype",
         {
@@ -299,7 +215,7 @@ const CameraCanvas = () => {
           },
           body: JSON.stringify({
             document_type: documentName,
-            fields: fields, // Include the new dynamic fields
+            fields: fields,
           }),
         }
       );
@@ -307,17 +223,13 @@ const CameraCanvas = () => {
       const result = await response.json();
 
       if (response.ok && result.status) {
-        // Simpan ID dokumen ke localStorage
         localStorage.setItem("document_id", result.document_id);
 
-        // Set nama document type agar lanjut ke kamera
         setSelectedDocumentType(
           result.document_type.toLowerCase().replace(/\s+/g, "_")
         );
 
         setShowDocumentSelection(false);
-
-        // Lanjutkan ke kamera
         initializeCamera();
 
         console.log("Document ID:", result.document_id);
@@ -332,7 +244,6 @@ const CameraCanvas = () => {
       }
     } catch (error) {
       console.error("Error submitting new document type:", error);
-      // Use a custom message box instead of alert
       console.log("Gagal membuat dokumen. Coba lagi.");
     }
   };
@@ -399,18 +310,16 @@ const CameraCanvas = () => {
           const hiddenCanvas = hiddenCanvasRef.current;
           const ctx = canvas.getContext("2d");
 
-          // Set canvas dimensions to match video stream
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           canvas.style.maxWidth = "100%";
-          canvas.style.height = "auto"; // Maintain aspect ratio
+          canvas.style.height = "auto";
 
           hiddenCanvas.width = video.videoWidth;
           hiddenCanvas.height = video.videoHeight;
 
-          // Calculate rectangle dimensions based on a common document aspect ratio (e.g., ID card)
           const rectWidth = canvas.width * 0.9;
-          const rectHeight = (53.98 / 85.6) * rectWidth; // Standard ID card aspect ratio
+          const rectHeight = (53.98 / 85.6) * rectWidth;
           const rectX = (canvas.width - rectWidth) / 2;
           const rectY = (canvas.height - rectHeight) / 2;
 
@@ -447,7 +356,6 @@ const CameraCanvas = () => {
                 );
               }
             }
-            // Continue drawing only if document selection is not active
             if (!showDocumentSelection) {
               requestAnimationFrame(drawToCanvas);
             }
@@ -459,19 +367,14 @@ const CameraCanvas = () => {
       }
     } catch (err) {
       console.error("Gagal mendapatkan kamera:", err);
-      // Handle camera access denied or not available
-      // For example, show a message to the user or offer manual upload only.
     }
   };
 
   useEffect(() => {
-    // This effect is for loading gallery images, which isn't directly used
-    // in the current display but kept for consistency with original code.
     const savedGallery = localStorage.getItem(STORAGE_KEY);
     if (savedGallery) setGalleryImages(JSON.parse(savedGallery));
   }, []);
 
-  // Modified useEffect to only run when isFreeze changes and camera is initialized
   useEffect(() => {
     if (cameraInitialized) {
       const video = videoRef.current;
@@ -503,8 +406,6 @@ const CameraCanvas = () => {
         }
       };
 
-      // Start drawing loop whenever isFreeze or cameraInitialized changes
-      // and document selection is not active.
       if (!showDocumentSelection) {
         drawToCanvas();
       }
@@ -518,7 +419,6 @@ const CameraCanvas = () => {
     const hiddenCtx = hiddenCanvas.getContext("2d");
     const visibleCtx = canvasRef.current.getContext("2d");
 
-    // Capture the current frame from the visible canvas to freeze it
     freezeFrameRef.current = visibleCtx.getImageData(
       0,
       0,
@@ -528,16 +428,13 @@ const CameraCanvas = () => {
     setIsFreeze(true);
     setLoading(true);
 
-    // Draw the video frame onto the hidden canvas for cropping
     hiddenCtx.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
 
-    // Create a new canvas for the cropped image
     const cropCanvas = document.createElement("canvas");
     cropCanvas.width = Math.floor(width);
     cropCanvas.height = Math.floor(height);
     const cropCtx = cropCanvas.getContext("2d");
 
-    // Draw the cropped portion from the hidden canvas to the crop canvas
     cropCtx.drawImage(
       hiddenCanvas,
       Math.floor(x),
@@ -553,9 +450,8 @@ const CameraCanvas = () => {
     const imageDataUrl = cropCanvas.toDataURL("image/png", 1.0);
     setCapturedImage(imageDataUrl);
 
-    setKTPdetected(true); // This variable name might be misleading now, but kept for consistency
+    setKTPdetected(true);
     setLoading(false);
-    // Continue to OCR etc... (handled by ReadImage)
   };
 
   function base64ToFile(base64Data, fileName) {
@@ -570,25 +466,26 @@ const CameraCanvas = () => {
     return new File([u8arr], fileName, { type: mime });
   }
 
+  // MODIFIED ReadImage function - Updated to match code 2's approach
   const ReadImage = async (capturedImage) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token"); // Ensure token is available
+      const token = localStorage.getItem("token");
 
-      // Ubah base64 ke file
       const file = base64ToFile(capturedImage, "image.jpg");
 
-      // Gunakan FormData
       const formData = new FormData();
       formData.append("image", file);
-      formData.append("document_type", selectedDocumentType); // Add document type to form data
+      // Re-added document_type to formData as per user's request
+      formData.append("document_type", selectedDocumentType);
 
+      // FIXED: Use the same endpoint as code 2 for consistent data processing
       const res = await fetch(
-        "https://bot.kediritechnopark.com/webhook/solid-data/scan",
+        "https://bot.kediritechnopark.com/webhook/solid-data/scan", // Changed to solid-data/scan
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`, // No Content-Type for FormData, browser sets it
+            Authorization: `Bearer ${token}`,
           },
           body: formData,
         }
@@ -598,107 +495,105 @@ const CameraCanvas = () => {
 
       const data = await res.json();
       if (data.responseCode == 409) {
-        console.log("Error 409: Document already registered.");
+        console.log(409); // Changed log message to match user's working snippet
         setFileTemp({ error: 409 });
+        setIsScanned(true); // Added from code 2
         return;
       }
-      console.log("Scan Result:", data);
+      console.log(data); // Changed log message to match user's working snippet
 
       setFileTemp(data);
+      setIsScanned(true); // Added from code 2 - Hide review buttons after scan
     } catch (error) {
       console.error("Failed to read image:", error);
-      // Handle error, e.g., show a message to the user
+      setIsScanned(true); // Added from code 2 - Hide buttons even on error
     }
   };
 
-  const handleSaveTemp = async (verifiedData, documentType) => {
+  // MODIFIED handleSaveTemp function - Updated to match code 2's approach
+  const handleSaveTemp = async (verifiedData, documentType) => { // Re-added documentType parameter
     try {
       setLoading(true);
-      const token = localStorage.getItem("token"); // Ensure token is available
+      const token = localStorage.getItem("token");
 
       const formData = new FormData();
       formData.append("data", JSON.stringify(verifiedData));
+      formData.append("document_type", documentType); // Re-added document_type to formData
 
-      if (!documentType) {
-        console.error("❌ documentType undefined! Cannot save.");
-        setLoading(false);
-        return;
-      }
-
-      console.log("✅ Saving data for documentType:", documentType);
-      formData.append("document_type", documentType);
-
+      // Use the same endpoint as code 2 for consistent saving
       const res = await fetch(
-        "https://bot.kediritechnopark.com/webhook/solid-data/save",
+        "https://bot.kediritechnopark.com/webhook/solid-data/save", // Changed to solid-data/save
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
-            // Content-Type is set by browser for FormData
+            // Jangan set Content-Type secara manual untuk FormData
           },
           body: formData,
         }
       );
 
       setLoading(false);
-      const result = await res.json();
-      console.log("Save Result:", result);
-      if (res.ok && result.status) {
-        // Successfully saved, clear temp data and reset camera
+      // Removed result parsing as it's not in the user's working snippet for this part
+      // const result = await res.json();
+      // console.log("Save Result:", result);
+      
+      // if (res.ok && result.status) { // Removed conditional check
+        // SUCCESS HANDLING - Added from code 2
         setFileTemp(null);
-        setIsFreeze(false);
-        setCapturedImage(null);
-        setKTPdetected(false);
-        // Optionally, go back to document selection or re-initialize camera for new scan
-        goBackToSelection();
-      } else {
-        console.error(
-          "Failed to save data:",
-          result.message || "Unknown error"
-        );
-        // Show error message to user
-      }
+        setShowSuccessMessage(true); // Show success message
+
+        // Hide success message after 3 seconds and reset states
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          setIsFreeze(false);
+          setIsScanned(false);
+          setCapturedImage(null);
+          // setKTPdetected(false); // Removed as it's not in the user's working snippet
+          // Optionally go back to selection or reset for new scan
+          // goBackToSelection();
+        }, 3000);
+      // } else { // Removed else block
+      //   console.error(
+      //     "Failed to save data:",
+      //     result.message || "Unknown error"
+      //   );
+      // }
     } catch (err) {
       console.error("Gagal menyimpan ke server:", err);
-      // Handle error, e.g., show a message to the user
+      setLoading(false);
     }
   };
 
   const handleDeleteTemp = async () => {
-    // This function seems to be for deleting temporary data on the server.
-    // The current implementation is commented out and sends `fileTemp` as body.
-    // If this is meant to delete a specific temporary scan result, it needs
-    // an ID or identifier from `fileTemp`.
     try {
-      // Example of how it might be implemented if an ID was available:
-      // const tempScanId = fileTemp?.id; // Assuming fileTemp has an ID
-      // if (tempScanId) {
-      //   await fetch(
-      //     `https://bot.kediritechnopark.com/webhook/mastersnapper/delete/${tempScanId}`,
-      //     {
-      //       method: "DELETE", // Or POST with a specific action
-      //       headers: { "Content-Type": "application/json" },
-      //     }
-      //   );
-      // }
+      // Aligned with user's working snippet for delete
+      await fetch(
+        "https://bot.kediritechnopark.com/webhook/solid-data/delete", // Changed to solid-data/delete
+        {
+          method: "POST", // User's snippet uses POST for delete
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileTemp }), // User's snippet sends fileTemp as body
+        }
+      );
+
       setFileTemp(null);
-      setIsFreeze(false);
-      setCapturedImage(null);
+      // Removed setIsFreeze, setCapturedImage, setIsScanned, setShowSuccessMessage as they are handled by handleHapus
+      // setIsFreeze(false);
+      // setCapturedImage(null);
+      // setIsScanned(false);
+      // setShowSuccessMessage(false);
     } catch (err) {
       console.error("Gagal menghapus dari server:", err);
     }
   };
 
-  // `removeImage` is for galleryImages, which is not currently displayed.
   const removeImage = (index) => {
     const newGallery = [...galleryImages];
     newGallery.splice(index, 1);
     setGalleryImages(newGallery);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newGallery));
   };
-
-  // `aspectRatio` is used in `initializeCamera` to calculate rectHeight.
-  // const aspectRatio = 53.98 / 85.6; // Already used implicitly in initializeCamera
 
   const handleManualUpload = async (e) => {
     const file = e.target.files[0];
@@ -708,7 +603,7 @@ const CameraCanvas = () => {
     reader.onloadend = () => {
       const imageDataUrl = reader.result;
       setCapturedImage(imageDataUrl);
-      setIsFreeze(true); // Freeze the display with the uploaded image
+      setIsFreeze(true);
 
       const image = new Image();
       image.onload = async () => {
@@ -717,13 +612,9 @@ const CameraCanvas = () => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
 
-        // Clear canvas and draw the uploaded image, respecting the crop area
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw the image to the entire canvas first
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-        // Then draw the rounded rectangle outline
         drawRoundedRect(
           ctx,
           rectRef.current.x,
@@ -733,10 +624,8 @@ const CameraCanvas = () => {
           rectRef.current.radius
         );
 
-        // Fill outside the rectangle to create the masking effect
         fillOutsideRect(ctx, rectRef.current, canvas.width, canvas.height);
 
-        // Store this state as the freeze frame
         freezeFrameRef.current = ctx.getImageData(
           0,
           0,
@@ -744,26 +633,24 @@ const CameraCanvas = () => {
           canvas.height
         );
 
-        // Create a separate canvas for the actual cropped image data
         const cropCanvas = document.createElement("canvas");
         cropCanvas.width = rectWidth;
         cropCanvas.height = rectHeight;
         const cropCtx = cropCanvas.getContext("2d");
 
-        // Draw the cropped portion from the main canvas to the crop canvas
         cropCtx.drawImage(
-          canvas, // Source canvas
+          canvas,
           rectRef.current.x,
           rectRef.current.y,
           rectWidth,
           rectHeight,
-          0, // Destination x
-          0, // Destination y
+          0,
+          0,
           rectWidth,
           rectHeight
         );
 
-        setKTPdetected(true); // Indicate that an image is ready for scan
+        setKTPdetected(true);
       };
       image.src = imageDataUrl;
     };
@@ -778,8 +665,9 @@ const CameraCanvas = () => {
     setCapturedImage(null);
     setFileTemp(null);
     setKTPdetected(false);
+    setIsScanned(false); // Added from code 2
+    setShowSuccessMessage(false); // Added from code 2
 
-    // Stop camera stream
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject;
       const tracks = stream.getTracks();
@@ -788,7 +676,23 @@ const CameraCanvas = () => {
     }
   };
 
-  // Function to get document display info
+  // NEW FUNCTION - Added from code 2
+  const handleHapus = () => {
+    setFileTemp(null);
+    setIsFreeze(false);
+    setIsScanned(false);
+    setCapturedImage(null);
+    setShowSuccessMessage(false);
+    setKTPdetected(false);
+    // Also stop camera stream if active - Added from user's working snippet
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  };
+
   const getDocumentDisplayInfo = (docType) => {
     switch (docType) {
       case "ktp":
@@ -801,10 +705,9 @@ const CameraCanvas = () => {
           name: "Akta Kelahiran",
           fullName: "Akta Kelahiran",
         };
-      case "new": // For the "new" option itself
+      case "new":
         return { icon: "✨", name: "New Document", fullName: "Dokumen Baru" };
       default:
-        // For dynamically added document types, use the name itself
         return {
           icon: "📄",
           name: docType,
@@ -815,19 +718,10 @@ const CameraCanvas = () => {
     }
   };
 
-  // Placeholder for `useNavigate` if `react-router-dom` is not used in this environment.
-  // If `react-router-dom` is available, uncomment the original `useNavigate`.
-  const navigate = (path) => {
-    console.log(`Navigating to: ${path}`);
-    // In a real browser environment with react-router-dom, this would be:
-    // useNavigate()(path);
-  };
-
   return (
     <div>
       <div style={styles.dashboardHeader}>
         <div style={styles.logoAndTitle}>
-          {/* Placeholder for image, ensure it's accessible */}
           <img
             src="https://placehold.co/40x40/429241/white?text=LOGO"
             alt="Bot Avatar"
@@ -892,7 +786,6 @@ const CameraCanvas = () => {
               Silakan pilih jenis dokumen yang akan Anda scan
             </p>
 
-            {/* New horizontal layout like in the image */}
             <div style={styles.documentGrid}>
               <button
                 onClick={() => handleDocumentTypeSelection("new")}
@@ -977,50 +870,61 @@ const CameraCanvas = () => {
               padding: "20px",
             }}
           >
-            {/* Back button */}
             <button onClick={goBackToSelection} style={styles.backButton}>
               ← Kembali ke Pilihan Dokumen
             </button>
 
-            {!isFreeze ? (
+            {/* SUCCESS MESSAGE - Added from code 2 */}
+            {showSuccessMessage ? (
+              <div
+                style={{
+                  padding: "20px",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  color: "#22c55e",
+                  textAlign: "center",
+                }}
+              >
+                Data berhasil disimpan
+              </div>
+            ) : !isFreeze ? (
               <>
                 <div
-                  style={{
-                    padding: 10,
-                    backgroundColor: "#429241",
-                    borderRadius: 15,
-                    color: "white",
-                    fontWeight: "bold",
-                    marginTop: 10,
-                    cursor: "pointer", // Add cursor pointer for interactivity
-                  }}
-                  onClick={shootImage}
+                  style={{ display: "flex", justifyContent: "center", gap: "50px" }}
                 >
-                  Ambil Gambar{" "}
-                  {getDocumentDisplayInfo(
-                    selectedDocumentType
-                  ).name.toUpperCase()}
-                </div>
-                <div style={{ fontWeight: "bold", margin: 10 }}>atau</div>
-                <div
-                  style={{
-                    padding: 10,
-                    backgroundColor: "#429241",
-                    borderRadius: 15,
-                    color: "white",
-                    fontWeight: "bold",
-                    cursor: "pointer", // Add cursor pointer for interactivity
-                  }}
-                  onClick={triggerFileSelect}
-                >
-                  Upload Gambar
+                  <div
+                    style={{
+                      padding: 10,
+                      backgroundColor: "#ef4444", // Changed color to match user's working snippet
+                      borderRadius: 15,
+                      color: "white",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                    }}
+                    onClick={shootImage}
+                  >
+                    Ambil Gambar
+                  </div>
+                  <div
+                    style={{
+                      padding: 10,
+                      backgroundColor: "#ef4444", // Changed color to match user's working snippet
+                      borderRadius: 15,
+                      color: "white",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                    }}
+                    onClick={triggerFileSelect}
+                  >
+                    Upload Gambar
+                  </div>
                 </div>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleManualUpload(e)}
-                  style={{ marginRight: 10, display: "none" }}
+                  style={{ display: "none" }}
                 />
               </>
             ) : loading ? (
@@ -1030,17 +934,19 @@ const CameraCanvas = () => {
               </div>
             ) : (
               capturedImage &&
-              (!fileTemp || fileTemp.error == undefined) && (
+              (!fileTemp || fileTemp.error == undefined) &&
+              !isScanned && ( // MODIFIED: Hide when isScanned is true (from code 2)
                 <div>
                   <h4 style={{ marginTop: 0 }}>Tinjau Gambar</h4>
                   <div
                     style={{
                       padding: 10,
-                      backgroundColor: "#429241",
+                      backgroundColor: "#ef4444", // Changed color to match user's working snippet
                       borderRadius: 15,
                       color: "white",
                       fontWeight: "bold",
-                      cursor: "pointer", // Add cursor pointer for interactivity
+                      cursor: "pointer",
+                      marginBottom: "10px",
                     }}
                     onClick={() => ReadImage(capturedImage)}
                   >
@@ -1048,62 +954,30 @@ const CameraCanvas = () => {
                   </div>
 
                   <h4
-                    onClick={() => {
-                      setFileTemp(null);
-                      setIsFreeze(false);
-                      setCapturedImage(null); // Clear captured image on delete
-                      setKTPdetected(false); // Reset KTP detected state
-                    }}
-                    style={{ cursor: "pointer", color: "#dc3545" }} // Add styling for delete
+                    style={{ cursor: "pointer" }} // Removed color to match user's working snippet
+                    onClick={handleHapus} // MODIFIED: Use handleHapus from code 2
                   >
                     Hapus
                   </h4>
                 </div>
               )
             )}
+            
+            {/* DATA DISPLAY SECTION - Updated to match code 2's approach */}
             {fileTemp && fileTemp.error != "409" ? (
-              <div>
-                {/* Header untuk bagian save - sama seperti document selection */}
-                <div style={styles.saveHeader}>
-                  <div style={styles.saveHeaderContent}>
-                    <div style={styles.saveHeaderIcon}>
-                      {getDocumentDisplayInfo(selectedDocumentType).icon}
-                    </div>
-                    <div style={styles.saveHeaderText}>
-                      <div style={styles.saveHeaderTitle}>
-                        Verifikasi Data{" "}
-                        {getDocumentDisplayInfo(selectedDocumentType).name}
-                      </div>
-                      <div style={styles.saveHeaderSubtitle}>
-                        Silakan periksa dan lengkapi data{" "}
-                        {getDocumentDisplayInfo(selectedDocumentType).fullName}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <PaginatedFormEditable
-                  data={fileTemp}
-                  handleSimpan={(data) =>
-                    handleSaveTemp(data, selectedDocumentType)
-                  }
-                />
-              </div>
+              <PaginatedFormEditable
+                data={fileTemp}
+                handleSimpan={(data) => handleSaveTemp(data, selectedDocumentType)} // Re-added selectedDocumentType
+              />
             ) : (
-              fileTemp &&
-              fileTemp.error == "409" && (
+              fileTemp && (
                 <>
-                  <h4 style={{ color: "#dc3545" }}>Dokumen Sudah Terdaftar</h4>
+                  <h4>KTP Sudah Terdaftar</h4> {/* Changed text to match user's working snippet */}
                   <h4
-                    onClick={() => {
-                      setFileTemp(null);
-                      setIsFreeze(false);
-                      setCapturedImage(null); // Clear captured image on delete
-                      setKTPdetected(false); // Reset KTP detected state
-                    }}
-                    style={{ cursor: "pointer", color: "#007bff" }} // Add styling for retry/clear
+                    style={{ cursor: "pointer" }} // Removed color to match user's working snippet
+                    onClick={handleHapus} // MODIFIED: Use handleHapus from code 2
                   >
-                    Coba Lagi
+                    Hapus
                   </h4>
                 </>
               )
@@ -1112,11 +986,20 @@ const CameraCanvas = () => {
         </>
       )}
 
-      {/* New Document Modal */}
       <NewDocumentModal
         isOpen={showNewDocumentModal}
         onClose={() => setShowNewDocumentModal(false)}
         onSubmit={handleNewDocumentSubmit}
+      />
+
+      {/* Modal component from user's working snippet */}
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        loading={loading}
+        fileTemp={fileTemp}
+        onSave={handleSaveTemp}
+        onDelete={handleDeleteTemp}
       />
     </div>
   );
@@ -1149,8 +1032,8 @@ const modalStyles = {
     width: "90%",
     maxWidth: "400px",
     boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
-    maxHeight: "80vh", // Limit modal height
-    overflowY: "auto", // Enable scrolling for long forms
+    maxHeight: "80vh",
+    overflowY: "auto",
   },
   header: {
     display: "flex",
@@ -1315,7 +1198,7 @@ const styles = {
     minWidth: "120px",
     zIndex: 100,
     marginTop: "10px",
-    overflow: "hidden", // Ensures rounded corners apply to children
+    overflow: "hidden",
   },
   dropdownItem: {
     display: "block",
@@ -1333,7 +1216,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    minHeight: "calc(100vh - 70px)", // Adjust based on header height
+    minHeight: "calc(100vh - 70px)",
     padding: "20px",
     boxSizing: "border-box",
     backgroundColor: "#f0f2f5",
@@ -1381,7 +1264,7 @@ const styles = {
     width: "60px",
     height: "60px",
     borderRadius: "50%",
-    backgroundColor: "#e0f7fa", // Light blue for icons
+    backgroundColor: "#e0f7fa",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -1416,7 +1299,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "100px", // Adjust as needed
+    height: "100px",
   },
   spinner: {
     border: "4px solid #f3f3f3",
