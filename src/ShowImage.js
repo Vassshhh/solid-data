@@ -18,7 +18,7 @@ const ShowImage = () => {
 
       try {
         const response = await fetch(
-          `https://bot.kediritechnopark.com/webhook/0f4420a8-8517-49ba-8ec5-75adde117813/ktp/img/${nik}`,
+          `https://bot.kediritechnopark.com/webhook/ed467164-05c0-4692-bb81-a8f13116bb1b/ktp/img/ikasapta/:nik/${nik}`,
           {
             method: "GET",
             headers: {

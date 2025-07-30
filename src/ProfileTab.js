@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./ProfileTab.module.css";
+import dashboardStyles from "./Dashboard.module.css";
+import profileStyles from "./ProfileTab.module.css";
 
 const ProfileTab = () => {
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [profile, setProfile] = useState({});
-  const [profileTemp, setProfileTemp] = useState({});
+  const [user, setUser] = useState({});
+  const [userTemp, setUserTemp] = useState({});
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -27,34 +28,62 @@ const ProfileTab = () => {
   };
 
   useEffect(() => {
-    const dummyProfile = {
-      username: "admin",
+    const verifyTokenAndFetchData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          "https://bot.kediritechnopark.com/webhook/solid-data/dashboard",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data[0].username) {
+          throw new Error("Unauthorized");
+        }
+
+        setUser(data[0]);
+        setUserTemp(data[0]);
+      } catch (error) {
+        console.error("Token tidak valid:", error.message);
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
     };
 
-    setProfile(dummyProfile);
-    setProfileTemp(dummyProfile);
+    verifyTokenAndFetchData();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
     try {
-      if (!profile.oldPassword || !profile.newPassword) {
+      if (!user.oldPassword || !user.newPassword) {
         alert("Password lama dan baru tidak boleh kosong.");
         return;
       }
 
       const payload = {
-        username: profile.username,
-        oldPassword: profile.oldPassword,
-        newPassword: profile.newPassword,
+        username: user.username,
+        oldPassword: user.oldPassword,
+        newPassword: user.newPassword,
       };
 
       const response = await fetch(
-        "https://bot.kediritechnopark.com/webhook/reset-password/psi",
+        "https://bot.kediritechnopark.com/webhook/solid-data/reset-password",
         {
           method: "PUT",
           headers: {
@@ -77,21 +106,26 @@ const ProfileTab = () => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setProfile(profileTemp);
+    setUser(userTemp);
   };
 
   return (
-    <div className={styles.dashboardContainer}>
-      <div className={styles.dashboardHeader}>
-        <div className={styles.logoAndTitle}>
-          <img src="/PSI.png" alt="Profile Avatar" />
-          <h1 className={styles.h1}>Kawal PSI Profile</h1>
+    <div className={dashboardStyles.dashboardContainer}>
+      <div className={dashboardStyles.dashboardHeader}>
+        <div className={dashboardStyles.logoAndTitle}>
+          <img src="/ikasapta.png" alt="Bot Avatar" />
+          <h1 className={dashboardStyles.h1}>SOLID</h1>
+          <h1 className={dashboardStyles.h1} styles="color: #43a0a7;">
+            DATA
+          </h1>
         </div>
 
-        <div className={styles.dropdownContainer} ref={menuRef}>
+        <div className={dashboardStyles.dropdownContainer} ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={styles.dropdownToggle}
+            className={dashboardStyles.dropdownToggle}
+            aria-expanded={isMenuOpen ? "true" : "false"}
+            aria-haspopup="true"
           >
             <svg
               width="15"
@@ -108,24 +142,32 @@ const ProfileTab = () => {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-
           {isMenuOpen && (
-            <div className={styles.dropdownMenu}>
+            <div className={dashboardStyles.dropdownMenu}>
               <button
                 onClick={() => {
                   navigate("/dashboard");
                   setIsMenuOpen(false);
                 }}
-                className={styles.dropdownItem}
+                className={dashboardStyles.dropdownItem}
               >
                 Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  navigate("/scan");
+                  setIsMenuOpen(false);
+                }}
+                className={dashboardStyles.dropdownItem}
+              >
+                Scan
               </button>
               <button
                 onClick={() => {
                   handleLogout();
                   setIsMenuOpen(false);
                 }}
-                className={styles.dropdownItem}
+                className={dashboardStyles.dropdownItem}
               >
                 Logout
               </button>
@@ -134,43 +176,43 @@ const ProfileTab = () => {
         </div>
       </div>
 
-      <div className={styles.mainContent}>
-        <div className={styles.profileSection}>
-          <div className={styles.profileCard}>
-            <div className={styles.profileHeader}>
+      <div className={profileStyles.mainContent}>
+        <div className={profileStyles.profileSection}>
+          <div className={profileStyles.profileCard}>
+            <div className={profileStyles.profileHeader}>
               <h2>Account</h2>
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className={styles.editButton}
+                  className={profileStyles.editButton}
                 >
                   Change Password
                 </button>
               ) : (
-                <div className={styles.actionButtons}>
+                <div className={profileStyles.actionButtons}>
                   <button
                     onClick={handleCancel}
-                    className={styles.cancelButton}
+                    className={profileStyles.cancelButton}
                   >
                     Cancel
                   </button>
-                  <button onClick={handleSave} className={styles.saveButton}>
+                  <button onClick={handleSave} className={profileStyles.saveButton}>
                     Save Changes
                   </button>
                 </div>
               )}
             </div>
 
-            <div className={styles.profileForm}>
+            <div className={profileStyles.profileForm}>
               {!isEditing && (
-                <div className={styles.inputGroup}>
-                  <label className={styles.inputLabel}>Username</label>
+                <div className={profileStyles.inputGroup}>
+                  <label className={profileStyles.inputLabel}>Username</label>
                   <input
                     type="text"
                     name="username"
-                    value={profile.username}
-                    className={`${styles.input} ${
-                      !isEditing ? styles.readOnly : ""
+                    value={user.username}
+                    className={`${profileStyles.input} ${
+                      !isEditing ? profileStyles.readOnly : ""
                     }`}
                     disabled
                   />
@@ -179,25 +221,25 @@ const ProfileTab = () => {
 
               {isEditing && (
                 <>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>
+                  <div className={profileStyles.inputGroup}>
+                    <label className={profileStyles.inputLabel}>
                       Current Password
                     </label>
                     <input
                       type="password"
                       name="oldPassword"
                       onChange={handleChange}
-                      className={styles.input}
+                      className={profileStyles.input}
                       placeholder="Enter current password"
                     />
                   </div>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>New Password</label>
+                  <div className={profileStyles.inputGroup}>
+                    <label className={profileStyles.inputLabel}>New Password</label>
                     <input
                       type="password"
                       name="newPassword"
                       onChange={handleChange}
-                      className={styles.input}
+                      className={profileStyles.input}
                       placeholder="Enter new password"
                     />
                   </div>
@@ -208,8 +250,8 @@ const ProfileTab = () => {
         </div>
       </div>
 
-      <div className={styles.footer}>
-        © 2025 Kediri Technopark • Dermalounge AI Admin
+      <div className={dashboardStyles.footer}>
+        © 2025 Kediri Technopark • Dashboard SOLID DATA
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ const Dashboard = () => {
 
       try {
         const response = await fetch(
-          "https://bot.kediritechnopark.com/webhook/dashboard/psi",
+          "https://bot.kediritechnopark.com/webhook/solid-data/dashboard",
           {
             method: "GET",
             headers: {
@@ -75,7 +75,7 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "https://bot.kediritechnopark.com/webhook/list-user/psi",
+        "https://bot.kediritechnopark.com/webhook/solid-data/list-user",
         {
           method: "GET",
           headers: {
@@ -110,7 +110,7 @@ const Dashboard = () => {
 
     try {
       const response = await fetch(
-        "https://bot.kediritechnopark.com/webhook/add-officer",
+        "https://bot.kediritechnopark.com/webhook/solid-data/add-officer",
         {
           method: "POST",
           headers: {
@@ -163,7 +163,7 @@ const Dashboard = () => {
 
     try {
       const response = await fetch(
-        `https://bot.kediritechnopark.com/webhook/psi/delete-officer`,
+        `https://bot.kediritechnopark.com/webhook/solid-data/delete-officer`,
         {
           method: "DELETE",
           headers: {
@@ -193,8 +193,11 @@ const Dashboard = () => {
     <div className={styles.dashboardContainer}>
       <div className={styles.dashboardHeader}>
         <div className={styles.logoAndTitle}>
-          <img src="/PSI.png" alt="Bot Avatar" />
-          <h1 className={styles.h1}>Kawal PSI Dashboard</h1>
+          <img src="/ikasapta.png" alt="Bot Avatar" />
+          <h1 className={styles.h1}>SOLID</h1>
+          <h1 className={styles.h1} styles="color: #43a0a7;">
+            DATA
+          </h1>
         </div>
 
         <div className={styles.dropdownContainer} ref={menuRef}>
@@ -343,7 +346,7 @@ const Dashboard = () => {
           )}
 
           <div className={styles.chartSection}>
-            <h2>Grafik Pertumbuhan Anggota</h2>
+            <h2>Grafik Upload Document</h2>
             {officerPerformanceData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={officerPerformanceData}>
@@ -355,7 +358,7 @@ const Dashboard = () => {
               </ResponsiveContainer>
             ) : (
               <div className={styles.warning}>
-                📋 Belum ada data performa untuk ditampilkan
+                📋 Belum ada data upload untuk ditampilkan
               </div>
             )}
           </div>
@@ -370,7 +373,7 @@ const Dashboard = () => {
       </div>
 
       <div className={styles.footer}>
-        © 2025 Kediri Technopark • Dashboard PSI
+        © 2025 Kediri Technopark • Dashboard SOLID DATA
       </div>
     </div>
   );

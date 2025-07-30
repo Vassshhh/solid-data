@@ -14,7 +14,7 @@
   --neutral-800: #262626;
   --neutral-900: #171717;
   --white: #ffffff;
-  --success-green: #10b981;
+  --success-green: #43a0a7;
   --warning-amber: #f59e0b;
   --error-red: #ef4444;
   --text-primary: #0f172a;
@@ -72,19 +72,19 @@
 }
 
 .fileCount {
-  font-size: 0.875rem;
+  font-size: 0.6rem;
   color: #ffffff;
   font-weight: 500;
-  background-color: #ef4444;
+  background-color: #43a0a7;
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
   border: 1px solid var(--border-light);
 }
 
 .successMessage {
-  background-color: rgb(16 185 129 / 0.1);
+  background-color: rgb(67 160 167 / 0.1);
   color: var(--success-green);
-  border: 1px solid rgb(16 185 129 / 0.2);
+  border: 1px solid rgb(67 160 167 / 0.2);
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   margin-bottom: 1rem;
@@ -116,7 +116,7 @@
 }
 
 .fileTable th {
-  background-color: #ef4444;
+  background-color: #43a0a7;
   padding: 0.75rem;
   text-align: center;
   font-weight: 600;
@@ -176,7 +176,7 @@
   width: 2rem;
   height: 2rem;
   border: 3px solid var(--neutral-300);
-  border-top: 3px solid #ef4444;
+  border-top: 3px solid #43a0a7;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -203,13 +203,13 @@
 }
 
 .tableContainer::-webkit-scrollbar-thumb {
-  background: #ef4444;
+  background: #43a0a7;
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 .tableContainer::-webkit-scrollbar-thumb:hover {
-  background: #dc2626;
+  background: #306a2f;
 }
 
 .tableContainer::-webkit-scrollbar-corner {
@@ -218,7 +218,7 @@
 
 .tableContainer {
   scrollbar-width: thin;
-  scrollbar-color: #ef4444 var(--neutral-100);
+  scrollbar-color: #43a0a7 var(--neutral-100);
 }
 
 /* Modal Styles - Matching Dashboard Design */
@@ -291,7 +291,7 @@
 }
 
 .closeButton {
-  background-color: #ef4444;
+  background-color: #43a0a7;
   color: var(--text-light);
   border: none;
   padding: 0.75rem 1.5rem;
@@ -399,7 +399,7 @@
   }
 
   .fileCount {
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     padding: 0.25rem 0.5rem;
   }
 
@@ -482,14 +482,14 @@
 }
 
 .downloadButton {
-  background-color: #00adef;
+  background-color: #164665;
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
   cursor: pointer;
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: 0.6rem;
   transition: background-color 0.3s ease;
 }
 

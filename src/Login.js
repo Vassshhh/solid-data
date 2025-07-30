@@ -18,7 +18,7 @@ const Login = () => {
 
     try {
       const loginResponse = await fetch(
-        "https://bot.kediritechnopark.com/webhook/login/psi",
+        "https://bot.kediritechnopark.com/webhook/solid-data/login",
         {
           method: "POST",
           headers: {
@@ -48,8 +48,8 @@ const Login = () => {
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginBox}>
-        <img src="/PSI.png" alt="Logo" className={styles.logo} />
-        <h1 className={styles.h1}>Kawal PSI</h1>
+        <img src="/ikasapta.png" alt="Logo" className={styles.logo} />
+        <h1 className={styles.h1}>SOLID DATA</h1>
         <p className={styles.subtitle}>
           Silakan masuk untuk melanjutkan ke dashboard
         </p>

@@ -1,6 +1,6 @@
 .overlay-box {
   position: absolute;
-  border: 3px dashed red;
+  border: 3px dashed #43a0a7;
   width: 80%; /* atau sesuaikan */
   aspect-ratio: 85.6 / 53.98;
   top: 50%;

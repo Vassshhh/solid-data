@@ -1,4 +1,4 @@
-/* ProfileTab.module.css - Modern Design */
+/* ProfileTab.module.css - Modern Design with Unified Header */
 
 /* Modern Color Palette */
 :root {
@@ -14,7 +14,7 @@
   --neutral-800: #262626;
   --neutral-900: #171717;
   --white: #ffffff;
-  --success-green: #10b981;
+  --success-green: #43a0a7;
   --warning-amber: #f59e0b;
   --error-red: #ef4444;
   --text-primary: #0f172a;
@@ -50,6 +50,7 @@ body {
   flex-direction: column;
 }
 
+/* --- UNIFIED HEADER (sama dengan Dashboard.css) --- */
 .dashboardHeader {
   background-color: var(--white);
   color: var(--text-primary);
@@ -58,7 +59,7 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: var(--shadow-sm);
-  border-bottom: 3px solid #ef4444;
+  border-bottom: 3px solid #43a0a7; /* Warna dari Dashboard.css */
   position: sticky;
   top: 0;
   z-index: 50;
@@ -80,10 +81,18 @@ body {
 }
 
 .dashboardHeader .h1 {
+  margin: 2px; /* Sama dengan Dashboard.css */
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #43a0a7; /* Warna dari Dashboard.css */
+  letter-spacing: -0.025em;
+}
+
+.data {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ed4344;
+  color: #154666;
   letter-spacing: -0.025em;
 }
 
@@ -94,6 +103,12 @@ body {
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+}
+
+.userDisplayName {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
 }
 
 .dropdownToggle {
@@ -155,7 +170,7 @@ body {
   margin-bottom: 0;
 }
 
-/* Main Content */
+/* --- MAIN CONTENT --- */
 .mainContent {
   flex-grow: 1;
   padding: 2rem 1.5rem;
@@ -205,7 +220,7 @@ body {
 }
 
 .editButton {
-  background-color: #ef4444;
+  background-color: #43a0a7; /* Diseragamkan dengan warna header */
   color: var(--text-light);
   border: none;
   padding: 0.75rem 1.5rem;
@@ -218,7 +233,7 @@ body {
 }
 
 .editButton:hover {
-  background-color: var(--dark-blue);
+  background-color: #357734;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -328,7 +343,11 @@ body {
 }
 
 .licenseCard {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(
+    135deg,
+    #43a0a7 0%,
+    #357734 100%
+  ); /* Diseragamkan dengan warna header */
   color: var(--text-light);
   padding: 1.5rem;
   border-radius: 1rem;
@@ -421,7 +440,7 @@ body {
   border-top: 1px solid var(--border-light);
 }
 
-/* Responsive Design */
+/* --- RESPONSIVE DESIGN --- */
 @media (min-width: 768px) {
   .dashboardHeader {
     padding: 1rem 2rem;
@@ -434,6 +453,10 @@ body {
 
   .dashboardHeader .h1 {
     font-size: 1.75rem;
+  }
+
+  .userDisplayName {
+    font-size: 0.875rem;
   }
 
   .mainContent {
