@@ -17,6 +17,69 @@ const FileListComponent = ({
   const [successMessage, setSuccessMessage] = useState("");
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
 
+  // Helper function to convert snake_case to Title Case
+  const formatKeyToLabel = (key) => {
+    return key
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  // Helper function to check if value is a date string and convert it
+  const formatValue = (key, value) => {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    // Check if the value looks like a date
+    if (typeof value === 'string' && 
+        (key.includes('tanggal') || key.includes('lahir') || key.includes('berlaku') || key.includes('pembuatan') || key.includes('created_at'))) {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+
+    return value;
+  };
+
+  // Dynamic function to process data for Excel export
+  const processDataForExcel = (data) => {
+    if (!data || data.length === 0) return [];
+
+    return data.map((item) => {
+      const processedItem = {};
+      
+      Object.entries(item).forEach(([key, value]) => {
+        // Skip null, undefined, or empty string values
+        if (value === null || value === undefined || value === '') {
+          return;
+        }
+
+        // Skip certain keys that are not needed in export
+        const excludedKeys = ['id', 'document_type', 'created_at', 'data', 'foto_url'];
+        if (excludedKeys.includes(key)) {
+          return;
+        }
+
+        // Format the key as label
+        const label = formatKeyToLabel(key);
+        
+        // Format the value
+        const formattedValue = formatValue(key, value);
+        
+        processedItem[label] = formattedValue;
+      });
+
+      return processedItem;
+    });
+  };
+
+  // Dynamic function to get unique document types
+  const getUniqueDocumentTypes = (data) => {
+    const types = [...new Set(data.map(item => item.document_type).filter(Boolean))];
+    return types;
+  };
+
   useEffect(() => {
     const fetchFiles = async () => {
       const token = localStorage.getItem("token");
@@ -47,7 +110,7 @@ const FileListComponent = ({
 
         const today = new Date().toISOString().slice(0, 10);
         const totalToday = fileData.filter((f) =>
-          f.created_at.startsWith(today)
+          f.created_at && f.created_at.startsWith(today)
         ).length;
         setTotalFilesSentToday(totalToday);
 
@@ -55,6 +118,7 @@ const FileListComponent = ({
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
         const totalThisMonth = fileData.filter((f) => {
+          if (!f.created_at) return false;
           const d = new Date(f.created_at);
           return (
             d.getMonth() === currentMonth && d.getFullYear() === currentYear
@@ -64,7 +128,10 @@ const FileListComponent = ({
 
         setTotalFilesSentOverall(fileData.length);
 
-        const dateObjects = fileData.map((item) => new Date(item.created_at));
+        const dateObjects = fileData
+          .filter(item => item.created_at)
+          .map((item) => new Date(item.created_at));
+        
         if (dateObjects.length > 0) {
           const minDate = new Date(Math.min(...dateObjects));
           const maxDate = new Date(Math.max(...dateObjects));
@@ -81,14 +148,16 @@ const FileListComponent = ({
             current.setMonth(current.getMonth() + 1);
           }
 
-          fileData.forEach((item) => {
-            const d = new Date(item.created_at);
-            const monthKey = `${d.getFullYear()}-${String(
-              d.getMonth() + 1
-            ).padStart(2, "0")}`;
-            if (monthlyDataMap[monthKey] !== undefined)
-              monthlyDataMap[monthKey]++;
-          });
+          fileData
+            .filter(item => item.created_at)
+            .forEach((item) => {
+              const d = new Date(item.created_at);
+              const monthKey = `${d.getFullYear()}-${String(
+                d.getMonth() + 1
+              ).padStart(2, "0")}`;
+              if (monthlyDataMap[monthKey] !== undefined)
+                monthlyDataMap[monthKey]++;
+            });
 
           const performanceArray = Object.entries(monthlyDataMap).map(
             ([month, count]) => {
@@ -133,7 +202,7 @@ const FileListComponent = ({
     try {
       const response = await fetch(
         `https://bot.kediritechnopark.com/webhook/solid-data/merged?nama_lengkap=${encodeURIComponent(
-          file.nama_lengkap
+          file.nama_lengkap || ''
         )}`,
         {
           method: "GET",
@@ -155,6 +224,9 @@ const FileListComponent = ({
         return;
       }
 
+      console.log("Data received from merged API:", data[0]); // Debug log
+      console.log("All keys in data:", Object.keys(data[0])); // Debug log
+      console.log("Non-null values:", Object.entries(data[0]).filter(([k,v]) => v !== null)); // Debug log
       setSelectedFile(data[0]);
     } catch (error) {
       console.error("Gagal mengambil detail:", error.message);
@@ -177,37 +249,20 @@ const FileListComponent = ({
     phone?.replace(/(\d{4})(\d{4})(\d{4})/, "$1-$2-$3");
 
   const exportToExcel = (data) => {
-    const modifiedData = data.map((item) => ({
-      ID: item.id,
-      Petugas_ID: item.petugas_id,
-      Petugas: item.username,
-      NIK: item.nik,
-      Nama_Lengkap: item.nama_lengkap,
-      Tempat_Lahir: item.tempat_lahir,
-      Tanggal_Lahir: new Date(item.tanggal_lahir),
-      Jenis_Kelamin: item.jenis_kelamin,
-      Alamat: item.alamat,
-      RT: item.rt,
-      RW: item.rw,
-      Kel_Desa: item.kel_desa,
-      Kecamatan: item.kecamatan,
-      Agama: item.agama,
-      Status_Perkawinan: item.status_perkawinan,
-      Pekerjaan: item.pekerjaan,
-      Kewarganegaraan: item.kewarganegaraan,
-      No_HP: item.no_hp,
-      Email: item.email,
-      Berlaku_Hingga: new Date(item.berlaku_hingga),
-      Pembuatan: new Date(item.pembuatan),
-      Kota_Pembuatan: item.kota_pembuatan,
-      Created_At: new Date(item.created_at),
-    }));
+    const processedData = processDataForExcel(data);
+    if (processedData.length === 0) {
+      alert("Tidak ada data untuk diekspor.");
+      return;
+    }
 
-    const worksheet = XLSX.utils.json_to_sheet(modifiedData);
+    const worksheet = XLSX.utils.json_to_sheet(processedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
     XLSX.writeFile(workbook, "data-export.xlsx");
   };
+
+  // Get unique document types for dropdown
+  const documentTypes = getUniqueDocumentTypes(files);
 
   return (
     <div className={styles.fileListSection}>
@@ -220,9 +275,9 @@ const FileListComponent = ({
             className={styles.fileCount}
           >
             <option value="">Semua</option>
-            <option value="ktp">KTP</option>
-            <option value="kk">KK</option>
-            <option value="akta_kelahiran">Akta Kelahiran</option>
+            {documentTypes.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
           </select>
           <button
             onClick={() => {
@@ -250,14 +305,14 @@ const FileListComponent = ({
           <div className={styles.emptyState}>
             <div className={styles.emptyStateTitle}>Belum ada data</div>
             <p className={styles.emptyStateText}>
-              Tidak ada data KK yang tersedia saat ini.
+              Tidak ada data yang tersedia saat ini.
             </p>
           </div>
         ) : (
           <table className={styles.fileTable}>
             <thead>
               <tr>
-                <th>ID</th>
+                <th>No</th>
                 <th>NIK</th>
                 <th>Jenis</th>
                 <th className={styles.nameColumn}>Nama Lengkap</th>
@@ -266,33 +321,32 @@ const FileListComponent = ({
             <tbody>
               {filteredFiles.map((file, index) => (
                 <tr
-                  key={file.id}
+                  key={file.id || index}
                   onClick={() => handleRowClick(file)}
                   className={styles.tableRow}
                 >
                   <td>{index + 1}</td>
-                  <td>{file.nik}</td>
-                  <td>{file.document_type}</td>
-                  <td className={styles.nameColumn}>{file.nama_lengkap}</td>
+                  <td>{file.nik || '-'}</td>
+                  <td>{file.document_type || '-'}</td>
+                  <td className={styles.nameColumn}>{file.nama_lengkap || '-'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
-      {/* Modal dan komponen lainnya tetap seperti sebelumnya */}
+
+      {/* Modal */}
       {selectedFile && (
         <div className={styles.modalOverlay} onClick={closeModal}>
-          {" "}
           <div
             className={styles.modalContent}
             onClick={(e) => e.stopPropagation()}
           >
-            {" "}
             {selectedFile.data && (
               <img
                 src={getImageSrc(selectedFile.data)}
-                alt={`Foto KTP - ${selectedFile.nik}`}
+                alt={`Foto Document - ${selectedFile.nik || 'Unknown'}`}
                 style={{
                   width: "100%",
                   maxHeight: "300px",
@@ -302,7 +356,7 @@ const FileListComponent = ({
                   boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
                 }}
               />
-            )}{" "}
+            )}
             <h3>🪪 Detail Data Document</h3>
             <div style={{ marginBottom: "1rem" }}>
               <PDFDownloadLink
@@ -319,7 +373,7 @@ const FileListComponent = ({
                     }}
                   />
                 }
-                fileName={`KTP_${selectedFile.nik}.pdf`}
+                fileName={`Document_${selectedFile.nik || selectedFile.id || 'unknown'}.pdf`}
                 style={{
                   textDecoration: "none",
                   padding: "8px 16px",
@@ -336,46 +390,97 @@ const FileListComponent = ({
             </div>
             <table className={styles.detailTable}>
               <tbody>
-                {[
-                  ["NIK", selectedFile.nik],
-                  ["No.Al", selectedFile.no_al],
-                  ["Nomor Akta Kelahiran", selectedFile.akta_kelahiran_nomor],
-                  ["Nama Lengkap", selectedFile.nama_lengkap],
-                  ["Anak Ke", selectedFile.anak_ke],
-                  ["Tempat Lahir", selectedFile.tempat_lahir],
-                  ["Tanggal Lahir", selectedFile.tanggal_lahir],
-                  ["Jenis Kelamin", selectedFile.jenis_kelamin],
-                  ["Alamat", selectedFile.alamat],
-                  ["Ayah", selectedFile.ayah],
-                  ["ibu", selectedFile.ibu],
-                  ["RT", selectedFile.rt],
-                  ["RW", selectedFile.rw],
-                  ["Kelurahan/Desa", selectedFile.kel_desa],
-                  ["Kecamatan", selectedFile.kecamatan],
-                  ["Agama", selectedFile.agama],
-                  ["Status Perkawinan", selectedFile.status_perkawinan],
-                  ["Pekerjaan", selectedFile.pekerjaan],
-                  ["Kewarganegaraan", selectedFile.kewarganegaraan],
-                  ["No HP", selectedFile.no_hp],
-                  ["Email", selectedFile.email],
-                  ["Berlaku Hingga", selectedFile.berlaku_hingga],
-                  ["Tanggal Pembuatan", selectedFile.pembuatan],
-                  ["Kota Pembuatan", selectedFile.kota_pembuatan],
-                ]
-                  .filter(([_, value]) => value !== null && value !== "")
-                  .map(([label, value]) => (
-                    <tr key={label}>
-                      <td>{label}</td>
-                      <td>{value}</td>
-                    </tr>
-                  ))}
+                {selectedFile && (console.log("selectedFile in modal:", selectedFile), true) &&
+                  Object.entries(selectedFile)
+                    .map(([key, value]) => {
+                      console.log(`Processing: ${key} = ${value} (type: ${typeof value})`);
+                      return [key, value];
+                    })
+                    .filter(([key, value]) => {
+                      console.log(`Filtering: ${key} = ${value}`);
+                      
+                      // Exclude specific keys that are not part of the display data
+                      const excludedKeys = [
+                        "id",
+                        "document_type", 
+                        "created_at",
+                        "data", // Exclude image data
+                        "foto_url", // Exclude image URL
+                      ];
+                      
+                      if (excludedKeys.includes(key)) {
+                        console.log(`Excluded key: ${key}`);
+                        return false;
+                      }
+                      
+                      if (value === null) {
+                        console.log(`Null value for key: ${key}`);
+                        return false;
+                      }
+                      if (value === undefined) {
+                        console.log(`Undefined value for key: ${key}`);
+                        return false;
+                      }
+                      if (typeof value === 'string' && value.trim() === '') {
+                        console.log(`Empty string for key: ${key}`);
+                        return false;
+                      }
+                      
+                      console.log(`Keeping key: ${key} with value: ${value}`);
+                      return true;
+                    })
+                    .map(([key, value]) => {
+                      console.log(`Rendering field: ${key} = ${value}`);
+                      
+                      // Special handling for 'anggota' array
+                      if (key === "anggota" && Array.isArray(value)) {
+                        return (
+                          <tr key={key}>
+                            <td>{formatKeyToLabel(key)}</td>
+                            <td>
+                              {value.map((member, idx) => (
+                                <div key={idx} style={{ marginBottom: "10px", borderBottom: "1px dashed #eee", paddingBottom: "5px" }}>
+                                  {Object.entries(member)
+                                    .filter(([_, memberValue]) => {
+                                      if (memberValue === null || memberValue === undefined) return false;
+                                      if (typeof memberValue === 'string' && memberValue.trim() === '') return false;
+                                      return true;
+                                    })
+                                    .map(([memberKey, memberValue]) => (
+                                      <div key={memberKey}>
+                                        <strong>{formatKeyToLabel(memberKey)}:</strong> {memberValue}
+                                      </div>
+                                    ))}
+                                </div>
+                              ))}
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      // Format dates for display
+                      let displayValue = value;
+                      if (typeof value === 'string' && 
+                          (key.includes('tanggal') || key.includes('lahir') || key.includes('berlaku') || key.includes('pembuatan') || key.includes('created_at'))) {
+                        const date = new Date(value);
+                        if (!isNaN(date.getTime())) {
+                          displayValue = date.toLocaleDateString('id-ID');
+                        }
+                      }
+
+                      return (
+                        <tr key={key}>
+                          <td>{formatKeyToLabel(key)}</td>
+                          <td>{displayValue}</td>
+                        </tr>
+                      );
+                    })}
               </tbody>
             </table>
             <button className={styles.closeButton} onClick={closeModal}>
-              {" "}
-              Tutup{" "}
-            </button>{" "}
-          </div>{" "}
+              Tutup
+            </button>
+          </div>
         </div>
       )}
     </div>

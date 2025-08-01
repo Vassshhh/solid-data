@@ -179,11 +179,75 @@ const CameraCanvas = () => {
   const [selectedDocumentType, setSelectedDocumentType] = useState(null);
   const [cameraInitialized, setCameraInitialized] = useState(false);
   const [showNewDocumentModal, setShowNewDocumentModal] = useState(false);
+  const [documentTypes, setDocumentTypes] = useState([]);
+  const [loadingDocumentTypes, setLoadingDocumentTypes] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false); // New state for edit mode
 
   // NEW STATES - Added from code 2
   const [isScanned, setIsScanned] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [modalOpen, setModalOpen] = useState(false); // Added from code 2
+
+  const handleDeleteDocumentType = async (id, documentType) => {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus dokumen tipe "${documentType}"?`)) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("https://bot.kediritechnopark.com/webhook/solid-data/delete-document-type", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ id, document_type: documentType }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("Delete response:", result);
+
+        // Check for 'success' property from the server response
+        if (result.success) {
+          setDocumentTypes(prevTypes => prevTypes.filter(doc => doc.id !== id));
+          alert(`Dokumen tipe "${documentType}" berhasil dihapus.`);
+        } else {
+          // Log the full result if success is false to help debug why it's failing
+          console.error(`Server reported failure for deleting document type "${documentType}":`, result);
+          alert(`Gagal menghapus dokumen tipe "${documentType}": ${result.message || "Respon tidak menunjukkan keberhasilan."}`);
+        }
+      } catch (error) {
+        console.error("Error deleting document type:", error);
+        alert(`Terjadi kesalahan saat menghapus dokumen tipe "${documentType}". Detail: ${error.message}`);
+      } finally {
+        // Ensure edit mode is exited after a delete attempt
+        setIsEditMode(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fetchDocumentTypes = async () => {
+      try {
+        setLoadingDocumentTypes(true);
+        const response = await fetch("https://bot.kediritechnopark.com/webhook/solid-data/show");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const activeDocumentTypes = data.filter(doc => doc.document_type !== "INACTIVE");
+        setDocumentTypes(activeDocumentTypes);
+      } catch (error) {
+        console.error("Error fetching document types:", error);
+        // Optionally handle error display to user
+      } finally {
+        setLoadingDocumentTypes(false);
+      }
+    };
+
+    fetchDocumentTypes();
+  }, []);
 
   const handleDocumentTypeSelection = (type) => {
     if (type === "new") {
@@ -205,9 +269,12 @@ const CameraCanvas = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(
-        "https://bot.kediritechnopark.com/webhook/solid-data/newtype",
-        {
+      // Construct the prompt based on fields
+      const fieldJson = fields.map(field => `  "${field.label.toLowerCase().replace(/\s+/g, '_')}": "string"`).join(",\n");
+      const promptContent = `Ekstrak data ${documentName} dan kembalikan dalam format JSON object tunggal berikut:\n\n{\n${fieldJson}\n}\n\nATURAN PENTING:\n- Kembalikan HANYA object JSON tunggal {...}, BUKAN array [{...}]\n- Gunakan format tanggal sederhana YYYY-MM-DD (jika ada field tanggal)\n- Jangan tambahkan penjelasan atau teks lain\n- Pastikan semua field diisi berdasarkan data yang terdeteksi`;
+
+      const [dataResponse, promptResponse] = await Promise.all([
+        fetch("https://bot.kediritechnopark.com/webhook/solid-data/newtype-data", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -217,35 +284,62 @@ const CameraCanvas = () => {
             document_type: documentName,
             fields: fields,
           }),
+        }),
+        fetch("https://bot.kediritechnopark.com/webhook/solid-data/newtype-prompt", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            document_type: documentName,
+            prompt: promptContent,
+          }),
+        }),
+      ]);
+
+      const dataResult = await dataResponse.json();
+      const promptResult = await promptResponse.json();
+
+      console.log("Server response for newtype-data:", dataResult);
+      console.log("Server response for newtype-prompt:", promptResult);
+
+      // Re-fetch document types to update the list, regardless of success or failure
+      const fetchDocumentTypes = async () => {
+        try {
+          setLoadingDocumentTypes(true);
+          const response = await fetch("https://bot.kediritechnopark.com/webhook/solid-data/show");
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          const activeDocumentTypes = data.filter(doc => doc.document_type !== "INACTIVE");
+          setDocumentTypes(activeDocumentTypes);
+        } catch (error) {
+          console.error("Error re-fetching document types:", error);
+        } finally {
+          setLoadingDocumentTypes(false);
         }
-      );
+      };
+      await fetchDocumentTypes(); // Re-fetch after creation attempt
 
-      const result = await response.json();
+      // Always show success notification as requested
+      alert(`Dokumen tipe "${documentName}" berhasil dibuat (atau percobaan pembuatan selesai).`);
 
-      if (response.ok && result.status) {
-        localStorage.setItem("document_id", result.document_id);
+      // The following states and onClose should be handled by NewDocumentModal's handleSubmit
+      // setSelectedDocumentType(
+      //   documentName.toLowerCase().replace(/\s+/g, "_")
+      // );
+      // setShowDocumentSelection(false);
+      // initializeCamera();
 
-        setSelectedDocumentType(
-          result.document_type.toLowerCase().replace(/\s+/g, "_")
-        );
-
-        setShowDocumentSelection(false);
-        initializeCamera();
-
-        console.log("Document ID:", result.document_id);
-        console.log(
-          "New Document Type Created:",
-          result.document_type,
-          "with fields:",
-          fields
-        );
-      } else {
-        throw new Error(result.message || "Gagal membuat document type");
-      }
+      console.log("New Document Type Creation Attempt Finished:", documentName, "with fields:", fields);
     } catch (error) {
+      // Log the error for debugging, but still show a "success" message to the user as requested
       console.error("Error submitting new document type:", error);
-      console.log("Gagal membuat dokumen. Coba lagi.");
+      alert(`Dokumen tipe "${documentName}" berhasil dibuat (atau percobaan pembuatan selesai).`); // Still show success as requested
     }
+    // Removed the finally block from here, as state resets and onClose belong to NewDocumentModal
   };
 
   const rectRef = useRef({
@@ -694,26 +788,23 @@ const CameraCanvas = () => {
   };
 
   const getDocumentDisplayInfo = (docType) => {
+    const foundDoc = documentTypes.find(doc => doc.document_type === docType);
+    if (foundDoc) {
+      return {
+        icon: "📄", // Generic icon for fetched types, or could be dynamic if provided by API
+        name: foundDoc.document_type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+        fullName: foundDoc.document_type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      };
+    }
+
     switch (docType) {
-      case "ktp":
-        return { icon: "🆔", name: "KTP", fullName: "Kartu Tanda Penduduk" };
-      case "kk":
-        return { icon: "👨‍👩‍👧‍👦", name: "KK", fullName: "Kartu Keluarga" };
-      case "akta_kelahiran":
-        return {
-          icon: "👶",
-          name: "Akta Kelahiran",
-          fullName: "Akta Kelahiran",
-        };
       case "new":
         return { icon: "✨", name: "New Document", fullName: "Dokumen Baru" };
       default:
         return {
           icon: "📄",
-          name: docType,
-          fullName: docType
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, (l) => l.toUpperCase()),
+          name: docType.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+          fullName: docType.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
         };
     }
   };
@@ -781,66 +872,67 @@ const CameraCanvas = () => {
       {showDocumentSelection ? (
         <div style={styles.selectionContainer}>
           <div style={styles.selectionContent}>
-            <h2 style={styles.selectionTitle}>Pilih Jenis Dokumen</h2>
+            <div style={styles.selectionHeader}> {/* New div for header */}
+              <h2 style={styles.selectionTitle}>Pilih Jenis Dokumen</h2>
+              <button
+                onClick={() => setIsEditMode(!isEditMode)}
+                style={styles.editButton}
+              >
+                {isEditMode ? "Selesai" : "Edit"}
+              </button>
+            </div>
             <p style={styles.selectionSubtitle}>
               Silakan pilih jenis dokumen yang akan Anda scan
             </p>
 
             <div style={styles.documentGrid}>
-              <button
-                onClick={() => handleDocumentTypeSelection("new")}
-                style={styles.documentCard}
-              >
-                <div style={styles.documentIconContainer}>
-                  <div style={styles.plusIcon}>+</div>
+              {loadingDocumentTypes ? (
+                <div style={styles.spinnerContainer}>
+                  <div style={styles.spinner} />
+                  <style>{spinnerStyle}</style>
                 </div>
-                <div style={styles.documentLabel}>new</div>
-              </button>
-
-              <button
-                onClick={() => handleDocumentTypeSelection("ktp")}
-                style={styles.documentCard}
-              >
-                <div
-                  style={{
-                    ...styles.documentIconContainer,
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  <div style={styles.documentIcon}>🆔</div>
-                </div>
-                <div style={styles.documentLabel}>ktp</div>
-              </button>
-
-              <button
-                onClick={() => handleDocumentTypeSelection("akta_kelahiran")}
-                style={styles.documentCard}
-              >
-                <div
-                  style={{
-                    ...styles.documentIconContainer,
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  <div style={styles.documentIcon}>👶</div>
-                </div>
-                <div style={styles.documentLabel}>akta</div>
-              </button>
-
-              <button
-                onClick={() => handleDocumentTypeSelection("kk")}
-                style={styles.documentCard}
-              >
-                <div
-                  style={{
-                    ...styles.documentIconContainer,
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  <div style={styles.documentIcon}>👨‍👩‍👧‍👦</div>
-                </div>
-                <div style={styles.documentLabel}>kk</div>
-              </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleDocumentTypeSelection("new")}
+                    style={styles.documentCard}
+                  >
+                    <div style={styles.documentIconContainer}>
+                      <div style={styles.plusIcon}>+</div>
+                    </div>
+                    <div style={styles.documentLabel}>new</div>
+                  </button>
+                  {documentTypes.map((doc) => {
+                    const displayInfo = getDocumentDisplayInfo(doc.document_type);
+                    return (
+                      <div key={doc.id} style={styles.documentCardWrapper}> {/* Wrapper for card and delete icon */}
+                        <button
+                          onClick={() => handleDocumentTypeSelection(doc.document_type)}
+                          style={styles.documentCard}
+                        >
+                          <div
+                            style={{
+                              ...styles.documentIconContainer,
+                              backgroundColor: "#f0f0f0",
+                            }}
+                          >
+                            <div style={styles.documentIcon}>{displayInfo.icon}</div>
+                          </div>
+                          <div style={styles.documentLabel}>{displayInfo.name}</div>
+                        </button>
+                        {isEditMode && (
+                          <button
+                            style={styles.deleteIcon}
+                            onClick={() => handleDeleteDocumentType(doc.id, doc.document_type)}
+                          >
+                            −
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1337,6 +1429,47 @@ const styles = {
   saveHeaderSubtitle: {
     fontSize: "14px",
     color: "#495057",
+  },
+  selectionHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "10px",
+  },
+  editButton: {
+    backgroundColor: "#007bff",
+    color: "white",
+    padding: "8px 15px",
+    borderRadius: "8px",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "background-color 0.2s",
+  },
+  documentCardWrapper: {
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  deleteIcon: {
+    position: "absolute",
+    top: "-10px",
+    right: "-10px",
+    backgroundColor: "#dc3545",
+    color: "white",
+    borderRadius: "50%",
+    width: "28px",
+    height: "28px",
+    fontSize: "20px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    cursor: "pointer",
+    border: "2px solid white",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+    zIndex: 10,
   },
 };
 
