@@ -1,84 +1,53 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  User, Eye, EyeOff, Plus, X, RefreshCw, FileText, Users, Baby, Settings, LogOut, Camera
+} from "lucide-react";
 import styles from "./Login.module.css";
 
-const Login = () => {
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
+/* ===========================================================
+   LOGIN PAGE
+   =========================================================== */
+export default function LoginPage({ onLoggedIn }) {
 
-  const [error, setError] = useState("");
+  const login = () => {
+    const baseUrl = "http://localhost:3001/";
+    const modal = "product";
+    const productId = 9;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const authorizedUri = "http://localhost:3000/dashboard?token=";
+    const unauthorizedUri = `${baseUrl}?modal=${modal}&product_id=${productId}`;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const url =
+      `${baseUrl}?modal=${modal}&product_id=${productId}` +
+      `&authorized_uri=${encodeURIComponent(authorizedUri)}` +
+      `&unauthorized_uri=${encodeURIComponent(unauthorizedUri)}`;
 
-    try {
-      const loginResponse = await fetch(
-        "https://bot.kediritechnopark.com/webhook/solid-data/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      const loginDataRaw = await loginResponse.json();
-      const loginData = Array.isArray(loginDataRaw)
-        ? loginDataRaw[0]
-        : loginDataRaw;
-
-      if (loginData?.success && loginData?.token) {
-        localStorage.setItem("token", loginData.token);
-        window.location.href = "/";
-      } else {
-        setError(loginData?.message || "Username atau password salah");
-      }
-    } catch (err) {
-      console.error("Login Error:", err);
-      setError("Gagal terhubung ke server");
-    }
+    window.location.href = url;
   };
 
   return (
     <div className={styles.loginContainer}>
-      <div className={styles.loginBox}>
-        <img src="/ikasapta.png" alt="Logo" className={styles.logo} />
-        <h1 className={styles.h1}>SOLID DATA</h1>
-        <p className={styles.subtitle}>
-          Silakan masuk untuk melanjutkan ke dashboard
-        </p>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            value={formData.username}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          {error && <p className={styles.error}>{error}</p>}
-          <button type="submit" className={styles.button}>
-            Login
+      <div className={styles.loginCard}>
+        {/* Logo/Brand */}
+
+        {/* Login Form */}
+        <div className={styles.loginForm}>
+
+        <div className={styles.brandSection}>
+          <div className={styles.logoIcon}>
+            <FileText className={styles.logoIconSvg} />
+          </div>
+          <h1 className={styles.brandTitle}>SOLID DATA</h1>
+          <p className={styles.brandSubtitle}>Kelola data dokumen Anda dengan mudah</p>
+        </div>
+          <button
+            className={styles.loginButton}
+            onClick={login}
+          >
+           Masuk
           </button>
-        </form>
-        <div className={styles.footer}>&copy; 2025 Kediri Technopark</div>
+        </div>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./Dashboard.module.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // ***
 import FileListComponent from "./FileListComponent";
 import {
   BarChart,
@@ -11,14 +11,19 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const API_BASE = "https://bot.kediritechnopark.com/webhook/solid-data";
+
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { organization_id: orgIdFromRoute } = useParams(); // ***
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
   const [user, setUser] = useState({});
   const [totalFilesSentToday, setTotalFilesSentToday] = useState(0);
   const [totalFilesSentMonth, setTotalFilesSentMonth] = useState(0);
@@ -26,107 +31,135 @@ const Dashboard = () => {
   const [officerPerformanceData, setOfficerPerformanceData] = useState([]);
   const [officers, setOfficers] = useState([]);
 
+  // Helper: ambil orgId yang valid dari route atau localStorage
+  const getActiveOrg = () => {
+    const selected = JSON.parse(localStorage.getItem("selected_organization") || "null");
+    // prioritas: URL param, fallback ke localStorage
+    const orgId = orgIdFromRoute || selected?.organization_id;
+    const orgName = selected?.nama_organization || "";
+    return { orgId, orgName };
+  };
+
+  // Helper: header standar, opsional kirim X-Organization-Id
+  const authHeaders = (extra = {}) => {
+    const token = localStorage.getItem("token");
+    const { orgId } = getActiveOrg();
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "X-Organization-Id": orgId ? String(orgId) : undefined, // backend boleh pakai header ini jika mau
+      ...extra,
+    };
+  };
+
+  // Pastikan sudah login & punya org yang dipilih
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      window.location.href = "/login";
-    }
-  }, []);
+    const { orgId } = getActiveOrg();
 
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    if (!orgId) {
+      navigate("/pick-organization");
+      return;
+    }
+
+    // Sinkronkan URL dengan orgId dari localStorage kalau user buka /dashboard tanpa param
+    if (!orgIdFromRoute) {
+      navigate(`/dashboard/${orgId}`, { replace: true });
+    }
+  }, [orgIdFromRoute, navigate]);
+
+  // Verifikasi token & ambil ringkasan dashboard untuk org terpilih
   useEffect(() => {
     const verifyTokenAndFetchData = async () => {
       const token = localStorage.getItem("token");
-      if (!token) {
-        window.location.href = "/login";
-        return;
-      }
+      const { orgId } = getActiveOrg();
+      if (!token || !orgId) return;
 
       try {
-        const response = await fetch(
-          "https://bot.kediritechnopark.com/webhook/solid-data/dashboard",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        // GET -> kirim orgId lewat query string
+        const res = await fetch(
+          `${API_BASE}/dashboard?organization_id=${encodeURIComponent(orgId)}`,
+          { method: "GET", headers: authHeaders() }
         );
 
-        const data = await response.json();
+        const data = await res.json();
 
-        if (!response.ok || !data[0].username) {
-          throw new Error("Unauthorized");
-          console.log(response);
+        if (!res.ok) {
+          console.error("Dashboard error:", data);
         }
 
-        setUser(data[0]);
-      } catch (error) {
-        console.error("Token tidak valid:", error.message);
-        localStorage.removeItem("token");
-        window.location.href = "/login";
+        // Contoh normalisasi struktur user dari backend
+        // Pakai apa yang ada: data.user atau data[0] atau langsung isi metrik
+        if (data?.user) setUser(data.user);
+        else if (Array.isArray(data) && data.length) setUser(data[0]);
+
+        // Jika backend mengembalikan metrik-metrik ini, set di sini.
+        if (typeof data?.total_today === "number") setTotalFilesSentToday(data.total_today);
+        if (typeof data?.total_month === "number") setTotalFilesSentMonth(data.total_month);
+        if (typeof data?.total_overall === "number") setTotalFilesSentOverall(data.total_overall);
+        if (Array.isArray(data?.officerPerformance))
+          setOfficerPerformanceData(data.officerPerformance);
+      } catch (err) {
+        console.error("Token/Fetch dashboard gagal:", err);
       }
     };
 
     verifyTokenAndFetchData();
-  }, []);
+  }, [orgIdFromRoute]);
 
-  // Memisahkan fungsi fetchOfficers agar dapat dipanggil ulang
+  // Ambil daftar officer (khusus admin) untuk org terpilih
   const fetchOfficers = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        "https://bot.kediritechnopark.com/webhook/solid-data/list-user",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    const { orgId } = getActiveOrg();
+    if (!orgId) return;
 
-      const data = await response.json();
-      setOfficers(data);
-    } catch (error) {
-      console.error("Gagal memuat daftar officer:", error.message);
+    try {
+      const res = await fetch(
+        `${API_BASE}/list-user?organization_id=${encodeURIComponent(orgId)}`,
+        { method: "GET", headers: authHeaders() }
+      );
+      const data = await res.json();
+      setOfficers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Gagal memuat daftar officer:", err);
     }
   };
 
   useEffect(() => {
-    if (user.role == "admin") {
+    if (user?.role === "admin") {
       fetchOfficers();
     }
-  }, [user.role]);
+  }, [user?.role]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    // jangan hapus selected_organization kalau mau balik lagi ke org sebelumnya
     window.location.reload();
   };
 
   const handleAddOfficer = async (e) => {
     e.preventDefault();
-
-    const token = localStorage.getItem("token");
+    const { orgId } = getActiveOrg();
+    if (!orgId) return;
 
     try {
-      const response = await fetch(
-        "https://bot.kediritechnopark.com/webhook/solid-data/add-officer",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            username,
-            password,
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/add-officer`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          username,
+          password,
+          organization_id: orgId, // *** kirim org pada body
+        }),
+      });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok || data.success === false) {
+      if (!res.ok || data.success === false) {
         throw new Error(data.message || "Gagal menambahkan officer");
       }
 
@@ -135,14 +168,43 @@ const Dashboard = () => {
       setPassword("");
       setErrorMessage("");
 
-      // Refresh daftar officer setelah berhasil menambahkan
       await fetchOfficers();
-    } catch (error) {
-      setErrorMessage(error.message || "Gagal menambahkan officer");
+    } catch (err) {
+      setErrorMessage(err.message || "Gagal menambahkan officer");
       setSuccessMessage("");
     }
   };
 
+  const handleDeleteOfficer = async (id) => {
+    const confirmDelete = window.confirm("Apakah Anda yakin ingin menghapus petugas ini?");
+    if (!confirmDelete) return;
+
+    const { orgId } = getActiveOrg();
+    if (!orgId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/delete-officer`, {
+        method: "DELETE",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          id,
+          organization_id: orgId, // *** kirim org pada body
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        throw new Error(data.message || "Gagal menghapus officer");
+      }
+
+      setOfficers((prev) => prev.filter((o) => o.id !== id));
+    } catch (err) {
+      alert("Gagal menghapus petugas: " + err.message);
+    }
+  };
+
+  // Tutup menu bila klik di luar
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -153,41 +215,7 @@ const Dashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleDeleteOfficer = async (id) => {
-    const confirmDelete = window.confirm(
-      "Apakah Anda yakin ingin menghapus petugas ini?"
-    );
-    if (!confirmDelete) return;
-
-    const token = localStorage.getItem("token");
-
-    try {
-      const response = await fetch(
-        `https://bot.kediritechnopark.com/webhook/solid-data/delete-officer`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            id,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || data.success === false) {
-        throw new Error(data.message || "Gagal menghapus officer");
-      }
-
-      // Hapus dari daftar tampilan
-      setOfficers((prev) => prev.filter((officer) => officer.id !== id));
-    } catch (error) {
-      alert("Gagal menghapus petugas: " + error.message);
-    }
-  };
+  const { orgName } = getActiveOrg();
 
   return (
     <div className={styles.dashboardContainer}>
@@ -195,9 +223,9 @@ const Dashboard = () => {
         <div className={styles.logoAndTitle}>
           <img src="/ikasapta.png" alt="Bot Avatar" />
           <h1 className={styles.h1}>SOLID</h1>
-          <h1 className={styles.h1} styles="color: #43a0a7;">
-            DATA
-          </h1>
+          <h1 className={styles.h1} styles="color: #43a0a7;">DATA</h1>
+          {/* *** tampilkan nama org aktif */}
+          {orgName && <span className={styles.orgBadge}>Org: {orgName}</span>}
         </div>
 
         <div className={styles.dropdownContainer} ref={menuRef}>
@@ -207,16 +235,8 @@ const Dashboard = () => {
             aria-expanded={isMenuOpen ? "true" : "false"}
             aria-haspopup="true"
           >
-            <svg
-              width="15"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="15" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
@@ -224,15 +244,6 @@ const Dashboard = () => {
           </button>
           {isMenuOpen && (
             <div className={styles.dropdownMenu}>
-              <button
-                onClick={() => {
-                  navigate("/profile");
-                  setIsMenuOpen(false);
-                }}
-                className={styles.dropdownItem}
-              >
-                Profile
-              </button>
               <button
                 onClick={() => {
                   navigate("/scan");
@@ -262,7 +273,7 @@ const Dashboard = () => {
             <h3>Hari Ini</h3>
             <p>{totalFilesSentToday.toLocaleString()}</p>
           </div>
-          <div className={styles.summaryCard}>
+        <div className={styles.summaryCard}>
             <h3>Bulan Ini</h3>
             <p>{totalFilesSentMonth.toLocaleString()}</p>
           </div>
@@ -273,7 +284,7 @@ const Dashboard = () => {
         </div>
 
         <div className={styles.dashboardGrid}>
-          {user.role === "admin" && (
+          {user?.role === "admin" && (
             <div className={styles.formSection}>
               <h2>Daftar Petugas</h2>
               <div className={styles.officerListContainer}>
@@ -364,7 +375,9 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* *** kirim orgId ke FileListComponent agar fetch-nya ikut org */}
         <FileListComponent
+          organizationId={getActiveOrg().orgId} // ***
           setTotalFilesSentToday={setTotalFilesSentToday}
           setTotalFilesSentMonth={setTotalFilesSentMonth}
           setTotalFilesSentOverall={setTotalFilesSentOverall}

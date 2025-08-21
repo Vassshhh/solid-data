@@ -179,7 +179,7 @@ const FileListComponent = ({
       }
     };
 
-    fetchFiles();
+    // fetchFiles();
   }, []);
 
   useEffect(() => {
